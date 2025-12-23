@@ -1,0 +1,15 @@
+# Ignore compiled classes
+WEB-INF/classes/
+
+# Ignore IDE files
+*.iml
+.vscode/
+.idea/
+
+# Ignore temporary files
+*.log
+*.tmp
+.DS_Store
+
+# Ignore database connectors if needed (or you can include them)
+WEB-INF/lib/mysql-connector-j-*.jar
