@@ -22,19 +22,48 @@ public class ProductsServlet extends HttpServlet {
         }
 
         List<Product> products = new ArrayList<>();
+        String searchQuery = req.getParameter("search"); // 1. Get search input
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            
+            String sql;
+            PreparedStatement stmt;
 
-        // Fetch products from database
-        try (Connection conn = DatabaseConnection.getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT * FROM products")) {
-
-            while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getInt("product_id"));
-                p.setName(rs.getString("name"));
-                p.setPrice(rs.getDouble("price"));
-                products.add(p);
+            // 2. Choose query based on whether user is searching
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                sql = "SELECT * FROM products WHERE name LIKE ?";
+                stmt = conn.prepareStatement(sql);
+                stmt.setString(1, "%" + searchQuery + "%"); // Add wildcards
+            } else {
+                sql = "SELECT * FROM products";
+                stmt = conn.prepareStatement(sql);
             }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Product p = new Product();
+                    p.setId(rs.getInt("product_id"));
+                    p.setName(rs.getString("name"));
+                    p.setPrice(rs.getDouble("price"));
+                    products.add(p);
+                }
+            }
+            // Close statement explicitly since it was created conditionally
+            stmt.close();
+
+            
+        // Fetch products from database
+        // try (Connection conn = DatabaseConnection.getConnection();
+        //         Statement stmt = conn.createStatement();
+        //         ResultSet rs = stmt.executeQuery("SELECT * FROM products")) {
+
+        //     while (rs.next()) {
+        //         Product p = new Product();
+        //         p.setId(rs.getInt("product_id"));
+        //         p.setName(rs.getString("name"));
+        //         p.setPrice(rs.getDouble("price"));
+        //         products.add(p);
+        //     }
 
         } catch (SQLException e) {
             e.printStackTrace();

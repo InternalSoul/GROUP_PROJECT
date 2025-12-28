@@ -9,7 +9,6 @@
     List<Product> products = (List<Product>) request.getAttribute("products");
 %>
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,8 +18,17 @@
 
 <h2>Available Products</h2>
 
+<div style="margin-bottom: 20px;">
+    <form action="products" method="get">
+        <input type="text" name="search" placeholder="Search by name..." value="${param.search}">
+        <button type="submit">Search</button>
+        <% if (request.getParameter("search") != null) { %>
+            <a href="products"><button type="button">Clear</button></a>
+        <% } %>
+    </form>
+</div>
 <% if (products == null || products.isEmpty()) { %>
-    <p>No products available</p>
+    <p>No products found.</p>
 <% } else { %>
 
 <table border="1">
@@ -43,16 +51,14 @@
 </tr>
 <% } %>
 
-
 </table>
 <% } %>
 
 <br>
 <a href="cart.jsp">View Cart</a>
-<form action="logout" method="get">
+<form action="logout" method="get" style="display:inline;">
     <button type="submit">Logout</button>
 </form>
-
 
 </body>
 </html>
