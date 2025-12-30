@@ -1,4 +1,4 @@
-<%@ page import="java.util.*, java.sql.*, com.mycompany.oscp.model.*" %>
+<%@ page import="java.util.*, java.sql.*, java.util.Base64, com.mycompany.oscp.model.*" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%
     User user = (User) session.getAttribute("user");
@@ -19,7 +19,14 @@
                 p.setName(rs.getString("NAME"));
                 p.setPrice(rs.getDouble("PRICE"));
                 try {
-                    p.setImage(rs.getString("IMAGE"));
+                    Blob imageBlob = rs.getBlob("IMAGE");
+                    if (imageBlob != null && imageBlob.length() > 0) {
+                        byte[] imageBytes = imageBlob.getBytes(1, (int) imageBlob.length());
+                        String base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(imageBytes);
+                        p.setImage(base64Image);
+                    } else {
+                        p.setImage("");
+                    }
                 } catch (SQLException e) {
                     p.setImage("");
                 }
@@ -147,12 +154,25 @@
             text-transform: uppercase;
             color: #666;
         }
-        .form-group input {
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
             padding: 15px;
             border: 1px solid #ddd;
             font-size: 14px;
             font-family: 'Inter', sans-serif;
             transition: border-color 0.3s;
+        }
+        .form-group input[type="file"] {
+            padding: 12px;
+            border: 1px dashed #ddd;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            background: #fafafa;
+            cursor: pointer;
+        }
+        .form-group input[type="file"]:hover {
+            border-color: #1a1a1a;
+            background: #f5f5f5;
         }
         .form-group input:focus {
             outline: none;
@@ -297,7 +317,7 @@
 
         <div class="section-card">
             <h2>Add New Product</h2>
-            <form action="products" method="post" class="add-product-form">
+            <form action="${pageContext.request.contextPath}/products" method="post" enctype="multipart/form-data" class="add-product-form">
                 <input type="hidden" name="action" value="add">
                 <div class="form-group">
                     <label for="name">Product Name</label>
@@ -308,8 +328,8 @@
                     <input type="number" id="price" name="price" step="0.01" min="0" placeholder="49.90" required>
                 </div>
                 <div class="form-group">
-                    <label for="image">Image URL</label>
-                    <input type="text" id="image" name="image" placeholder="https://...">
+                    <label for="image">Product Image</label>
+                    <input type="file" id="image" name="image" accept="image/*">
                 </div>
                 <button type="submit" class="btn btn-primary">Add Product</button>
             </form>
@@ -349,7 +369,7 @@
                                 <td>
                                     <form action="products" method="post" style="display: inline;">
                                         <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="productId" value="<%= p.getId() %>">
+                                        <input type="hidden" name="id" value="<%= p.getId() %>">
                                         <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Remove</button>
                                     </form>
                                 </td>

@@ -9,6 +9,8 @@
     List<Product> products = (List<Product>) request.getAttribute("products");
     List<Product> cart = (List<Product>) session.getAttribute("cart");
     int cartCount = (cart != null) ? cart.size() : 0;
+    String currentSearch = request.getParameter("search") != null ? request.getParameter("search") : "";
+    String currentSort = request.getParameter("sort") != null ? request.getParameter("sort") : "";
 %>
 <!DOCTYPE html>
 <html>
@@ -35,6 +37,8 @@
         .search-bar { display: flex; gap: 15px; max-width: 600px; margin: 0 auto; }
         .search-bar input { flex: 1; padding: 16px 24px; border: 1px solid #ddd; font-size: 0.95em; font-family: 'Inter', sans-serif; }
         .search-bar input:focus { outline: none; border-color: #1a1a1a; }
+        .search-bar select { padding: 16px 20px; border: 1px solid #ddd; font-size: 0.95em; font-family: 'Inter', sans-serif; background: #fff; cursor: pointer; }
+        .search-bar select:focus { outline: none; border-color: #1a1a1a; }
         .search-bar button { padding: 16px 30px; background: #1a1a1a; color: #fff; border: none; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
         .search-bar button:hover { background: #333; }
         .search-bar .clear-btn { background: #666; }
@@ -79,9 +83,16 @@
     </div>
     <div class="search-section">
         <form class="search-bar" action="products" method="get">
-            <input type="text" name="search" placeholder="Search products..." value="<%= request.getParameter("search") != null ? request.getParameter("search") : "" %>">
-            <button type="submit">Search</button>
-            <% if (request.getParameter("search") != null && !request.getParameter("search").isEmpty()) { %>
+            <input type="text" name="search" placeholder="Search products..." value="<%= currentSearch %>">
+            <select name="sort">
+                <option value="">Sort by</option>
+                <option value="priceAsc" <%= "priceAsc".equals(currentSort) ? "selected" : "" %>>Price: Low to High</option>
+                <option value="priceDesc" <%= "priceDesc".equals(currentSort) ? "selected" : "" %>>Price: High to Low</option>
+                <option value="nameAsc" <%= "nameAsc".equals(currentSort) ? "selected" : "" %>>Name: A to Z</option>
+                <option value="nameDesc" <%= "nameDesc".equals(currentSort) ? "selected" : "" %>>Name: Z to A</option>
+            </select>
+            <button type="submit">Apply</button>
+            <% if (!currentSearch.isEmpty() || !currentSort.isEmpty()) { %>
                 <a href="products"><button type="button" class="clear-btn">Clear</button></a>
             <% } %>
         </form>
