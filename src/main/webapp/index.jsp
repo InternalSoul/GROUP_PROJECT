@@ -191,6 +191,7 @@
     </style>
 </head>
 <body>
+    <!-- test -->
     <div class="top-bar">FREE SHIPPING ON ORDERS OVER RM200</div>
     
     <nav class="navbar">
