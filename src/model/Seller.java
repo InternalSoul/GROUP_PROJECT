@@ -22,18 +22,23 @@ public class Seller extends User {
     }
 
     public void updateShop() {
-        System.out.println("Shop updated");
+        System.out.println("Shop '" + shopName + "' updated by seller: " + getUsername());
     }
 
     public void addProduct(Product product) {
-        System.out.println("Product added");
+        System.out.println("Product '" + product.getName() + "' added by seller: " + getUsername());
     }
 
     public void updateProduct(Product product) {
-        System.out.println("Product updated");
+        System.out.println("Product '" + product.getName() + "' updated by seller: " + getUsername());
+    }
+
+    public void deleteProduct(Product product) {
+        System.out.println("Product '" + product.getName() + "' deleted by seller: " + getUsername());
     }
 
     public void changeOrderStatus(Order order, String status) {
         order.setStatus(status);
+        System.out.println("Order " + order.getId() + " status changed to: " + status + " by seller: " + getUsername());
     }
 }

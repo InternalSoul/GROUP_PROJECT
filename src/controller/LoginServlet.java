@@ -2,10 +2,12 @@ package controller;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.sql.*;
 import model.*;
 
+@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
     @Override
@@ -17,6 +19,16 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String username = req.getParameter("username");
         String password = req.getParameter("password");
+
+        try {
+            // Load MySQL JDBC Driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            req.setAttribute("error", "Database driver not found: " + e.getMessage());
+            req.getRequestDispatcher("/login.jsp").forward(req, res);
+            return;
+        }
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT * FROM users WHERE username=? AND password=?";
@@ -38,7 +50,7 @@ public class LoginServlet extends HttpServlet {
                         if ("customer".equals(user.getRole())) {
                             res.sendRedirect("products");
                         } else {
-                            res.sendRedirect("sellerShop.jsp");
+                            res.sendRedirect("sellerDashboard.jsp");
                         }
                         return;
                     } else {
