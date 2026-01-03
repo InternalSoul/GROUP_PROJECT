@@ -36,16 +36,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= product.getName() %> - Details</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Manrope', sans-serif; background: linear-gradient(135deg, #f7f7f2, #f0f4ff); color: #0f172a; }
-        .top-bar { background: #0f172a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eaeaea; background: #fff; position: sticky; top: 0; z-index: 10; }
-        .navbar .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.9em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #0f172a; }
-        .navbar .nav-links { display: flex; gap: 26px; align-items: center; }
-        .navbar .nav-links a { text-decoration: none; color: #0f172a; font-size: 0.9em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; transition: opacity 0.2s; }
-        .navbar .nav-links a:hover { opacity: 1; }
-        .user-name { color: #475569; font-size: 0.85em; }
+        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
+        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.6; }
+        .user-name { color: #888; font-size: 0.85em; }
         .page { max-width: 1200px; margin: 40px auto 60px; padding: 0 40px; }
         .breadcrumbs { font-size: 0.85em; color: #475569; margin-bottom: 20px; }
         .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: start; }
@@ -94,18 +95,7 @@
     </style>
 </head>
 <body>
-    <div class="top-bar">Complimentary shipping on orders over $200</div>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="cart">Cart</a>
-            <a href="tracking">Track Order</a>
-            <% if ("seller".equals(user.getRole()) || "admin".equals(user.getRole())) { %><a href="sellerShop.jsp">My Shop</a><% } %>
-            <span class="user-name">Hi, <%= user.getUsername() %></span>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
 
     <div class="page">
         <div class="breadcrumbs"><a href="products" style="color:#0f172a; text-decoration:none;">Shop</a> / <span style="opacity:0.65;"><%= product.getName() %></span></div>

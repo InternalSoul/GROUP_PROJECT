@@ -1,4 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="model.*" %>
+<%
+    User user = (User) session.getAttribute("user");
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,7 +16,7 @@
         .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; }
         .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
-        .navbar .nav-links { display: flex; gap: 35px; }
+        .navbar .nav-links { display: flex; gap: 35px; align-items: center; }
         .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.9em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
         .navbar .nav-links a:hover { opacity: 0.6; }
         .hero { height: 80vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600') center/cover; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; }
@@ -41,20 +45,17 @@
     </style>
 </head>
 <body>
-    <div class="top-bar">FREE SHIPPING ON ORDERS OVER $200</div>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="login">Login</a>
-            <a href="register">Register</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
     <section class="hero">
         <h1>CLOTHING STORE</h1>
         <p>Slow Fashion & Modern Culture</p>
         <div class="hero-buttons">
-            <a href="login" class="btn btn-primary">Shop Now</a>
-            <a href="register" class="btn btn-secondary">Join Us</a>
+            <a href="<%= (user != null) ? "products" : "login" %>" class="btn btn-primary">
+                <%= (user != null) ? "Shop Now" : "Shop Now" %>
+            </a>
+            <a href="<%= (user != null) ? "orderHistory" : "register" %>" class="btn btn-secondary">
+                <%= (user != null) ? "View Orders" : "Join Us" %>
+            </a>
         </div>
     </section>
     <section class="features-section">

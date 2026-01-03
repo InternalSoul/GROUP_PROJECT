@@ -94,18 +94,7 @@
     </style>
 </head>
 <body>
-    <div class="top-bar">FREE SHIPPING ON ORDERS OVER $200</div>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="cart">Cart<span class="cart-count"><%= cartCount %></span></a>
-            <a href="tracking">Track Order</a>
-            <% if ("seller".equals(user.getRole()) || "admin".equals(user.getRole())) { %><a href="sellerShop.jsp">My Shop</a><% } %>
-            <span class="user-name">Hi, <%= user.getUsername() %></span>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
     <div class="page-header">
         <h1>Shop All</h1>
         <p>Curated collection of premium fashion</p>
@@ -223,9 +212,9 @@
                                     <span>Shop: <%= sellerName %></span>
                                 </span>
                             </div>
-                            <% if (p.getRating() > 0) { %>
+                            
                                 <p class="product-rating">★ <%= String.format("%.1f", p.getRating()) %></p>
-                            <% } %>
+                            
                             <p class="product-price">$<%= String.format("%.2f", p.getPrice()) %></p>
                         </div>
                         <div style="padding: 0 25px 25px 25px;" onclick="event.stopPropagation();">

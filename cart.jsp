@@ -26,11 +26,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
+        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
         .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
         .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
         .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
         .navbar .nav-links a:hover { opacity: 0.6; }
+        .cart-count { background: #1a1a1a; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
+        .user-name { color: #888; font-size: 0.85em; }
         .container { max-width: 1000px; margin: 0 auto; padding: 60px 30px; }
         h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; text-align: center; }
         .cart-empty { text-align: center; padding: 80px 40px; background: #fff; border: 1px solid #eee; }
@@ -61,15 +64,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="cart">Cart</a>
-            <a href="tracking">Track Order</a>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
     <div class="container">
         <h1>Shopping Bag</h1>
         <% if (cart.isEmpty()) { %>

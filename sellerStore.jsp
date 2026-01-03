@@ -96,18 +96,7 @@
     </style>
 </head>
 <body>
-    <div class="top-bar">FREE SHIPPING ON ORDERS OVER $200</div>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="cart">Cart<span class="cart-count"><%= cartCount %></span></a>
-            <a href="tracking">Track Order</a>
-            <% if ("seller".equals(user.getRole()) || "admin".equals(user.getRole())) { %><a href="sellerShop.jsp">My Shop</a><% } %>
-            <span class="user-name">Hi, <%= user.getUsername() %></span>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
 
     <div class="page-header">
         <% String avatarUrl = "https://ui-avatars.com/api/?background=111111&color=fff&name=" + URLEncoder.encode(sellerUsername, "UTF-8"); %>
