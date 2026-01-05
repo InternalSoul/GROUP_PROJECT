@@ -129,6 +129,32 @@ public class CartServlet extends HttpServlet {
             String image = req.getParameter("image");
             String sellerUsername = req.getParameter("sellerUsername");
 
+            // Check stock availability before adding to cart
+            User user = (User) session.getAttribute("user");
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                String stockSql = "SELECT stock_quantity, in_stock FROM products WHERE product_id = ?";
+                try (PreparedStatement psStock = conn.prepareStatement(stockSql)) {
+                    psStock.setInt(1, id);
+                    try (ResultSet rsStock = psStock.executeQuery()) {
+                        if (rsStock.next()) {
+                            int availableStock = rsStock.getInt("stock_quantity");
+                            boolean inStock = rsStock.getBoolean("in_stock");
+                            
+                            if (!inStock || availableStock < quantity) {
+                                req.setAttribute("error", "Only " + availableStock + " items available in stock");
+                                req.getRequestDispatcher("/products").forward(req, res);
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                req.setAttribute("error", "Failed to check stock availability");
+                req.getRequestDispatcher("/products").forward(req, res);
+                return;
+            }
+
             // Add one Product instance per quantity to the in-memory cart to
             // keep existing logic simple (each entry is treated as 1 unit).
             for (int i = 0; i < quantity; i++) {
@@ -140,7 +166,7 @@ public class CartServlet extends HttpServlet {
             }
 
             // Also record cart item in database using carts/cart_items schema
-            User user = (User) session.getAttribute("user");
+        
             if (user != null) {
                 try (Connection conn = DatabaseConnection.getConnection()) {
                     // Find or create a cart for this user

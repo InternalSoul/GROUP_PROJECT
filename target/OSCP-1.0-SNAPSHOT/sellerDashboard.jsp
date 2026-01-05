@@ -10,6 +10,8 @@
     int productCount = 0;
     double totalValue = 0.0;
     List<Product> latestProducts = new ArrayList<>();
+    List<Map<String, Object>> recentOrders = new ArrayList<>();
+    int orderCount = 0;
 
     try (Connection conn = DatabaseConnection.getConnection()) {
         String countSql = "SELECT COUNT(*) AS cnt, COALESCE(SUM(price),0) AS total_val FROM products WHERE seller_username = ?";
@@ -19,6 +21,38 @@
                 if (rs.next()) {
                     productCount = rs.getInt("cnt");
                     totalValue = rs.getDouble("total_val");
+                }
+            }
+        }
+
+        // Get order count for this seller
+        String orderCountSql = "SELECT COUNT(DISTINCT order_id) as cnt FROM order_items WHERE seller_username = ?";
+        try (PreparedStatement ps = conn.prepareStatement(orderCountSql)) {
+            ps.setString(1, user.getUsername());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    orderCount = rs.getInt("cnt");
+                }
+            }
+        }
+
+        // Get recent orders
+        String ordersSql = "SELECT DISTINCT o.order_id, o.user_username, o.total_amount, o.status, o.created_at " +
+                          "FROM orders o " +
+                          "JOIN order_items oi ON o.order_id = oi.order_id " +
+                          "WHERE oi.seller_username = ? " +
+                          "ORDER BY o.created_at DESC LIMIT 5";
+        try (PreparedStatement ps = conn.prepareStatement(ordersSql)) {
+            ps.setString(1, user.getUsername());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> order = new HashMap<>();
+                    order.put("orderId", rs.getInt("order_id"));
+                    order.put("customerUsername", rs.getString("user_username"));
+                    order.put("totalAmount", rs.getDouble("total_amount"));
+                    order.put("status", rs.getString("status"));
+                    order.put("createdAt", rs.getTimestamp("created_at"));
+                    recentOrders.add(order);
                 }
             }
         }
@@ -106,9 +140,58 @@
             </div>
             <div class="stat-card">
                 <div class="stat-label">Orders</div>
-                <div class="stat-value">N/A</div>
-                <div class="stat-sub">Hook up to orders table to enable</div>
+                <div class="stat-value"><%= orderCount %></div>
+                <div class="stat-sub">Total orders received</div>
             </div>
+        </div>
+
+        <% 
+            String successMsg = (String) request.getAttribute("success");
+            String errorMsg = (String) request.getAttribute("error");
+        %>
+        <% if (successMsg != null) { %>
+            <div style="margin-top: 20px; padding: 12px 16px; background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; border-radius: 8px;"><%= successMsg %></div>
+        <% } %>
+        <% if (errorMsg != null) { %>
+            <div style="margin-top: 20px; padding: 12px 16px; background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; border-radius: 8px;"><%= errorMsg %></div>
+        <% } %>
+
+        <div class="section">
+            <h2>Recent Orders</h2>
+            <p>Orders containing your products.</p>
+            <% if (recentOrders.isEmpty()) { %>
+                <p style="color:#888; margin-top: 12px;">No orders yet.</p>
+            <% } else { %>
+                <table class="table">
+                    <thead>
+                        <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <% for (Map<String, Object> order : recentOrders) { %>
+                            <tr>
+                                <td>ORD<%= order.get("orderId") %></td>
+                                <td><%= order.get("customerUsername") %></td>
+                                <td>$<%= String.format("%.2f", (Double)order.get("totalAmount")) %></td>
+                                <td><%= order.get("status") %></td>
+                                <td><%= order.get("createdAt") != null ? ((java.sql.Timestamp)order.get("createdAt")).toLocalDateTime().toLocalDate().toString() : "N/A" %></td>
+                                <td>
+                                    <form action="updateOrderStatus" method="post" style="display: inline-flex; gap: 8px; align-items: center;">
+                                        <input type="hidden" name="orderId" value="<%= order.get("orderId") %>">
+                                        <select name="status" style="padding: 6px 10px; border: 1px solid #ddd; font-size: 0.85em;">
+                                            <option value="Pending" <%= "Pending".equals(order.get("status")) ? "selected" : "" %>>Pending</option>
+                                            <option value="Processing" <%= "Processing".equals(order.get("status")) ? "selected" : "" %>>Processing</option>
+                                            <option value="Shipped" <%= "Shipped".equals(order.get("status")) ? "selected" : "" %>>Shipped</option>
+                                            <option value="Delivered" <%= "Delivered".equals(order.get("status")) ? "selected" : "" %>>Delivered</option>
+                                            <option value="Cancelled" <%= "Cancelled".equals(order.get("status")) ? "selected" : "" %>>Cancelled</option>
+                                        </select>
+                                        <button type="submit" style="padding: 6px 12px; background: #1a1a1a; color: #fff; border: none; cursor: pointer; font-size: 0.85em;">Update</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            <% } %>
         </div>
 
         <div class="section">

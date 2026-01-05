@@ -72,6 +72,32 @@ public class OrderServlet extends HttpServlet {
             try (Connection conn = DatabaseConnection.getConnection()) {
                 conn.setAutoCommit(false);
 
+                // Validate stock availability before creating order
+                String stockCheckSql = "SELECT stock_quantity, in_stock, name FROM products WHERE product_id = ?";
+                try (PreparedStatement psStock = conn.prepareStatement(stockCheckSql)) {
+                    for (Map.Entry<Integer, Integer> entry : quantityById.entrySet()) {
+                        int productId = entry.getKey();
+                        int requestedQty = entry.getValue();
+                        
+                        psStock.setInt(1, productId);
+                        try (ResultSet rsStock = psStock.executeQuery()) {
+                            if (rsStock.next()) {
+                                int availableStock = rsStock.getInt("stock_quantity");
+                                boolean inStock = rsStock.getBoolean("in_stock");
+                                String productName = rsStock.getString("name");
+                                
+                                if (!inStock || availableStock < requestedQty) {
+                                    conn.rollback();
+                                    req.setAttribute("error", "Insufficient stock for " + productName + 
+                                                             ". Only " + availableStock + " available.");
+                                    req.getRequestDispatcher("/cart").forward(req, res);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 String insertOrderSql = "INSERT INTO orders (user_username, total_amount, status, payment_method, created_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP)";
                 int dbOrderId = 0;
                 try (PreparedStatement ps = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
@@ -148,6 +174,17 @@ public class OrderServlet extends HttpServlet {
                     // Set estimated delivery to 7 days from now
                     psTrack.setTimestamp(3, new Timestamp(System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000)));
                     psTrack.executeUpdate();
+                }
+
+                // Decrement stock quantities for ordered products
+                String updateStockSql = "UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?";
+                try (PreparedStatement psUpdateStock = conn.prepareStatement(updateStockSql)) {
+                    for (Map.Entry<Integer, Integer> entry : quantityById.entrySet()) {
+                        psUpdateStock.setInt(1, entry.getValue());
+                        psUpdateStock.setInt(2, entry.getKey());
+                        psUpdateStock.addBatch();
+                    }
+                    psUpdateStock.executeBatch();
                 }
 
                 conn.commit();

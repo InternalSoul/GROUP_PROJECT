@@ -29,8 +29,50 @@ public class PaymentServlet extends HttpServlet {
 
         String method = req.getParameter("method");
         if (method == null || method.isEmpty()) {
-            res.sendRedirect(req.getContextPath() + "/payment.jsp");
+            req.setAttribute("error", "Please select a payment method");
+            req.getRequestDispatcher("/payment.jsp").forward(req, res);
             return;
+        }
+
+        // Validate payment details based on method
+        if ("Card".equalsIgnoreCase(method)) {
+            String cardNumber = req.getParameter("cardNumber");
+            String cardName = req.getParameter("cardName");
+            String expiryDate = req.getParameter("expiryDate");
+            String cvv = req.getParameter("cvv");
+
+            if (cardNumber == null || cardNumber.isEmpty() ||
+                cardName == null || cardName.isEmpty() ||
+                expiryDate == null || expiryDate.isEmpty() ||
+                cvv == null || cvv.isEmpty()) {
+                req.setAttribute("error", "Please fill in all card details");
+                req.getRequestDispatcher("/payment.jsp").forward(req, res);
+                return;
+            }
+
+            // Basic card number validation (16 digits)
+            if (!cardNumber.matches("\\d{16}")) {
+                req.setAttribute("error", "Invalid card number. Must be 16 digits");
+                req.getRequestDispatcher("/payment.jsp").forward(req, res);
+                return;
+            }
+
+            // CVV validation (3-4 digits)
+            if (!cvv.matches("\\d{3,4}")) {
+                req.setAttribute("error", "Invalid CVV. Must be 3-4 digits");
+                req.getRequestDispatcher("/payment.jsp").forward(req, res);
+                return;
+            }
+        } else if ("Online".equalsIgnoreCase(method)) {
+            String bankName = req.getParameter("bankName");
+            String accountNumber = req.getParameter("accountNumber");
+
+            if (bankName == null || bankName.isEmpty() ||
+                accountNumber == null || accountNumber.isEmpty()) {
+                req.setAttribute("error", "Please provide bank details");
+                req.getRequestDispatcher("/payment.jsp").forward(req, res);
+                return;
+            }
         }
 
         Payment payment;

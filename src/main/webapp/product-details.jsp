@@ -117,7 +117,32 @@
         .variant-pill { padding: 8px 12px; border-radius: 999px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.9em; cursor: pointer; }
         .variant-pill-selected { border-color: #0f172a; background: #0f172a; color: #fff; }
         .variant-pill[disabled] { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; }
-        @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .navbar { padding: 16px 30px; } .page { padding: 0 24px; } }
+        @media (max-width: 1024px) { 
+            .layout { grid-template-columns: 1fr; } 
+            .navbar { padding: 16px 30px; flex-wrap: wrap; } 
+            .navbar .nav-links { gap: 15px; flex-wrap: wrap; }
+            .page { padding: 0 24px; } 
+        }
+        @media (max-width: 768px) {
+            .navbar { padding: 12px 20px; }
+            .navbar .logo { font-size: 1.4em; }
+            .navbar .nav-links { font-size: 0.75em; gap: 12px; }
+            .page { padding: 0 20px; margin: 30px auto 40px; }
+            .title { font-size: 2em; }
+            .price { font-size: 1.5em; }
+            .layout { gap: 20px; }
+            .media, .detail-card { padding: 16px; }
+            .spec-grid { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; }
+            .actions .btn { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .breadcrumbs { font-size: 0.75em; }
+            .title { font-size: 1.6em; }
+            .hero-img { aspect-ratio: 3 / 4; }
+            .section { padding: 16px; }
+            .section h2 { font-size: 1.5em; }
+        }
     </style>
 </head>
 <body>

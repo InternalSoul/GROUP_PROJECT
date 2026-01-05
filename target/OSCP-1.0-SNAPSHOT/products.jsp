@@ -83,17 +83,50 @@
         .add-to-cart-btn:hover { background: #333; }
         .no-products { text-align: center; padding: 80px; color: #888; }
         .no-products h2 { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 400; margin-bottom: 15px; color: #1a1a1a; }
-        .error-banner { margin: 20px 60px 0; padding: 12px 16px; border: 1px solid #ffcccc; background: #fff5f5; color: #b00020; font-size: 0.9em; }
+        .error-banner { margin: 20px 60px 0; padding: 12px 16px; border: 1px solid #ffcccc; background: #fff5f5; color: #b00020; font-size: 0.9em; border-radius: 8px; }
+        .success-banner { margin: 20px 60px 0; padding: 12px 16px; border: 1px solid #c6f6d5; background: #f0fff4; color: #22543d; font-size: 0.9em; border-radius: 8px; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1a1a1a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .products-count { font-size: 0.9em; color: #666; margin-bottom: 20px; }
         .footer { background: #1a1a1a; color: #fff; padding: 50px 60px; margin-top: 60px; text-align: center; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 20px; }
         .footer p { color: #666; font-size: 0.8em; }
-        @media (max-width: 1200px) { .products-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); } .navbar { padding: 15px 30px; } .search-main-row { flex-direction: column; align-items: stretch; } .search-main-row > * { width: 100%; } .filters-panel { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); } }
-        @media (max-width: 600px) { .products-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1200px) { 
+            .products-grid { grid-template-columns: repeat(3, 1fr); } 
+            .container { padding: 40px 40px; }
+        }
+        @media (max-width: 900px) { 
+            .products-grid { grid-template-columns: repeat(2, 1fr); } 
+            .navbar { padding: 15px 30px; flex-wrap: wrap; }
+            .navbar .nav-links { gap: 15px; flex-wrap: wrap; }
+            .page-header { padding: 40px 30px 30px; }
+            .page-header h1 { font-size: 2.2em; }
+            .search-section { padding: 20px 30px; }
+            .search-main-row { flex-direction: column; align-items: stretch; } 
+            .search-main-row > * { width: 100%; }
+            .filters-panel { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+            .container { padding: 30px 30px; }
+        }
+        @media (max-width: 600px) { 
+            .products-grid { grid-template-columns: 1fr; } 
+            .navbar { padding: 12px 20px; }
+            .navbar .logo { font-size: 1.4em; }
+            .navbar .nav-links { font-size: 0.75em; gap: 12px; }
+            .page-header { padding: 30px 20px 20px; }
+            .page-header h1 { font-size: 1.8em; }
+            .search-section { padding: 15px 20px; }
+            .container { padding: 20px 20px; }
+            .product-image { height: 250px; }
+            .filter-toggle { width: 100%; justify-content: center; }
+            .footer { padding: 30px 20px; }
+        }
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
     <jsp:include page="header.jsp" />
     <div class="page-header">
         <h1>Shop All</h1>
@@ -229,6 +262,9 @@
     (function() {
         const toggle = document.getElementById('filterToggle');
         const panel = document.getElementById('filterPanel');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const searchForm = document.querySelector('.search-form');
+        const addToCartForms = document.querySelectorAll('form[action="cart"]');
         let open = true;
         const hasActiveFilters = '<%= (!selectedProductType.isEmpty() || !selectedSize.isEmpty() || !selectedColor.isEmpty() || !selectedBrand.isEmpty() || !selectedPriceRange.isEmpty() || !currentSort.isEmpty()) %>' === 'true';
 
@@ -247,6 +283,24 @@
                 panel.classList.add('collapsed');
                 toggle.textContent = 'Filters ▸';
             }
+        });
+
+        // Show loading overlay on search
+        if (searchForm) {
+            searchForm.addEventListener('submit', () => {
+                loadingOverlay.style.display = 'flex';
+            });
+        }
+
+        // Show loading briefly when adding to cart
+        addToCartForms.forEach(form => {
+            form.addEventListener('submit', (e) => {
+                const button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.textContent = 'Adding...';
+                    button.disabled = true;
+                }
+            });
         });
     })();
 </script>

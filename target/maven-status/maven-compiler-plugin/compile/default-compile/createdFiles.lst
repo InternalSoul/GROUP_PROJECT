@@ -3,7 +3,9 @@ com\mycompany\oscp\controller\ReviewServlet.class
 com\mycompany\oscp\controller\LoginServlet.class
 com\mycompany\oscp\controller\OrderHistoryServlet.class
 com\mycompany\oscp\controller\LogoutServlet.class
+com\mycompany\oscp\controller\UpdateOrderStatusServlet.class
 com\mycompany\oscp\model\Review.class
+com\mycompany\oscp\model\CartItem.class
 com\mycompany\oscp\controller\CartServlet.class
 com\mycompany\oscp\model\Payment.class
 com\mycompany\oscp\resources\JakartaEE10Resource.class

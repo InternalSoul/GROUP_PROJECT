@@ -48,6 +48,19 @@
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 60px; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
         .footer p { color: #666; font-size: 0.8em; }
+        .breadcrumbs { font-size: 0.85em; color: #888; margin-bottom: 20px; text-align: center; }
+        .breadcrumbs a { color: #1a1a1a; text-decoration: none; transition: opacity 0.3s; }
+        .breadcrumbs a:hover { opacity: 0.6; }
+        .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; }
+        .payment-fields { display: none; margin-top: 20px; }
+        .payment-fields.active { display: block; }
+        .form-group input { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; }
+        .form-group input:focus { outline: none; border-color: #1a1a1a; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) {
+            .payment-box { padding: 30px 20px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -61,6 +74,15 @@
         </div>
     </nav>
     <div class="container">
+        <div class="breadcrumbs">
+            <a href="index.jsp">Home</a> / <a href="products">Shop</a> / <a href="cart">Cart</a> / <span style="opacity: 0.65;">Payment</span>
+        </div>
+        <% 
+            String errorMsg = (String) request.getAttribute("error");
+        %>
+        <% if (errorMsg != null) { %>
+            <div class="error-message"><%= errorMsg %></div>
+        <% } %>
         <h1>Payment</h1>
         <div class="payment-box">
             <div class="order-summary">
@@ -69,7 +91,7 @@
                 <div class="summary-row"><span>Shipping</span><span>Free</span></div>
                 <div class="summary-row total"><span>Total</span><span>$<%= String.format("%.2f", total) %></span></div>
             </div>
-            <form action="order" method="post">
+            <form action="order" method="post" id="paymentForm">
                 <div class="form-group">
                     <label for="method">Payment Method</label>
                     <select name="method" id="method" required>
@@ -79,11 +101,90 @@
                         <option value="Card">Credit/Debit Card</option>
                     </select>
                 </div>
+
+                <!-- Card Payment Fields -->
+                <div id="cardFields" class="payment-fields">
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="16" pattern="\d{16}">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardName">Cardholder Name</label>
+                        <input type="text" id="cardName" name="cardName" placeholder="John Doe">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="expiryDate">Expiry Date</label>
+                            <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="cvv">CVV</label>
+                            <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" pattern="\d{3,4}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Online Banking Fields -->
+                <div id="onlineFields" class="payment-fields">
+                    <div class="form-group">
+                        <label for="bankName">Bank Name</label>
+                        <input type="text" id="bankName" name="bankName" placeholder="Select your bank">
+                    </div>
+                    <div class="form-group">
+                        <label for="accountNumber">Account Number</label>
+                        <input type="text" id="accountNumber" name="accountNumber" placeholder="Enter account number">
+                    </div>
+                </div>
+
                 <button type="submit" class="pay-btn">Complete Payment</button>
                 <a href="cart" class="back-link">← Back to Cart</a>
             </form>
         </div>
     </div>
     <footer class="footer"><div class="footer-logo">CLOTHING STORE</div><p>© 2026 Clothing Store. All rights reserved.</p></footer>
+    <script>
+        (function() {
+            const methodSelect = document.getElementById('method');
+            const cardFields = document.getElementById('cardFields');
+            const onlineFields = document.getElementById('onlineFields');
+            const paymentForm = document.getElementById('paymentForm');
+
+            methodSelect.addEventListener('change', function() {
+                const method = this.value;
+                
+                // Hide all payment fields
+                cardFields.classList.remove('active');
+                onlineFields.classList.remove('active');
+                
+                // Clear required attributes
+                cardFields.querySelectorAll('input').forEach(input => {
+                    input.removeAttribute('required');
+                });
+                onlineFields.querySelectorAll('input').forEach(input => {
+                    input.removeAttribute('required');
+                });
+
+                // Show relevant fields
+                if (method === 'Card') {
+                    cardFields.classList.add('active');
+                    cardFields.querySelectorAll('input').forEach(input => {
+                        input.setAttribute('required', 'required');
+                    });
+                } else if (method === 'Online') {
+                    onlineFields.classList.add('active');
+                    onlineFields.querySelectorAll('input').forEach(input => {
+                        input.setAttribute('required', 'required');
+                    });
+                }
+            });
+
+            // Add loading state to submit button
+            paymentForm.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('.pay-btn');
+                submitBtn.textContent = 'Processing...';
+                submitBtn.disabled = true;
+            });
+        })();
+    </script>
 </body>
 </html>

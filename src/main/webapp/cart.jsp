@@ -77,12 +77,47 @@
         .continue-shopping:hover { color: #1a1a1a; }
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
-        .footer p { color: #666; font-size: 0.8em; }
+        .footer p { color: #666; font-size: 0.8em; }        .breadcrumbs { font-size: 0.85em; color: #888; margin-bottom: 20px; }
+        .breadcrumbs a { color: #1a1a1a; text-decoration: none; transition: opacity 0.3s; }
+        .breadcrumbs a:hover { opacity: 0.6; }
+        .success-message { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; }
+        .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; }        @media (max-width: 900px) {
+            .navbar { padding: 15px 30px; flex-wrap: wrap; }
+            .navbar .nav-links { gap: 15px; flex-wrap: wrap; }
+            .container { padding: 40px 30px; }
+            .cart-items { gap: 20px; }
+            .cart-summary { margin-top: 30px; }
+        }
+        @media (max-width: 600px) {
+            .navbar { padding: 12px 20px; }
+            .navbar .logo { font-size: 1.4em; }
+            .navbar .nav-links { font-size: 0.75em; gap: 12px; }
+            .container { padding: 30px 20px; }
+            .container h1 { font-size: 2em; }
+            .cart-item { flex-direction: column; align-items: center; text-align: center; padding: 20px; }
+            .item-image { width: 100%; height: 200px; }
+            .item-details { align-items: center; }
+            .remove-btn { margin-top: 15px; }
+            .footer { padding: 30px 20px; }
+        }
     </style>
 </head>
 <body>
     <jsp:include page="header.jsp" />
     <div class="container">
+        <div class="breadcrumbs">
+            <a href="index.jsp">Home</a> / <a href="products">Shop</a> / <span style="opacity: 0.65;">Shopping Bag</span>
+        </div>
+        <% 
+            String successMsg = (String) request.getAttribute("success");
+            String errorMsg = (String) request.getAttribute("error");
+        %>
+        <% if (successMsg != null) { %>
+            <div class="success-message"><%= successMsg %></div>
+        <% } %>
+        <% if (errorMsg != null) { %>
+            <div class="error-message"><%= errorMsg %></div>
+        <% } %>
         <h1>Shopping Bag</h1>
         <% if (cart.isEmpty()) { %>
             <div class="cart-empty">
