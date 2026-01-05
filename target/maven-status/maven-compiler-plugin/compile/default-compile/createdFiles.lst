@@ -14,6 +14,7 @@ com\mycompany\oscp\model\Order.class
 com\mycompany\oscp\controller\PaymentServlet.class
 com\mycompany\oscp\model\OrderDetails.class
 com\mycompany\oscp\model\Product.class
+com\mycompany\oscp\model\OrderTracking.class
 com\mycompany\oscp\controller\OrderServlet.class
 com\mycompany\oscp\model\Seller.class
 com\mycompany\oscp\model\User.class

@@ -9,7 +9,7 @@
 
     // Fetch only the current seller's products
     List<Product> products = new ArrayList<>();
-    String productSql = "SELECT product_id, name, pric AS price, image, product_type, size, color, brand FROM products WHERE seller_username = ? ORDER BY product_id DESC";
+    String productSql = "SELECT product_id, name, price, image, product_type, size, color, brand FROM products WHERE seller_username = ? ORDER BY product_id DESC";
     try (Connection conn = DatabaseConnection.getConnection();
          PreparedStatement stmt = conn.prepareStatement(productSql)) {
         stmt.setString(1, user.getUsername());

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
     // Derby database connection settings
-    private static final String URL = "jdbc:derby://localhost:1527/Clothing_store2;create=true";
+    private static final String URL = "jdbc:derby://localhost:1527/ClothingStore2;create=true";
     private static final String USER = "root";
     private static final String PASSWORD = "root";
 

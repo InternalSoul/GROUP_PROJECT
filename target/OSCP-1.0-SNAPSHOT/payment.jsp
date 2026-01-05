@@ -69,7 +69,7 @@
                 <div class="summary-row"><span>Shipping</span><span>Free</span></div>
                 <div class="summary-row total"><span>Total</span><span>$<%= String.format("%.2f", total) %></span></div>
             </div>
-            <form action="payment" method="post">
+            <form action="order" method="post">
                 <div class="form-group">
                     <label for="method">Payment Method</label>
                     <select name="method" id="method" required>

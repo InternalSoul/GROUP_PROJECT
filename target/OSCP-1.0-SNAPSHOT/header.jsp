@@ -12,9 +12,8 @@
              PreparedStatement ps = conn.prepareStatement(
                  "SELECT COALESCE(SUM(ci.quantity),0) AS cnt " +
                  "FROM carts c " +
-                 "JOIN users u ON c.user_id = u.user_id " +
                  "LEFT JOIN cart_items ci ON c.cart_id = ci.cart_id " +
-                 "WHERE u.username = ?")) {
+                 "WHERE c.customer_username = ?")) {
             ps.setString(1, user.getUsername());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -22,6 +21,7 @@
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace();
             // If DB lookup fails for any reason, fall back to session cart.
             cartCount = (cart != null) ? cart.size() : 0;
         }

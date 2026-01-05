@@ -118,11 +118,9 @@
             </div>
             <div class="cart-summary">
                 <div class="summary-row"><span>Subtotal</span><span>$<%= String.format("%.2f", total) %></span></div>
-                <div class="summary-row"><span>Shipping</span><span>Calculated at checkout</span></div>
+                <div class="summary-row"><span>Shipping</span><span>Free</span></div>
                 <div class="summary-row total"><span>Total</span><span>$<%= String.format("%.2f", total) %></span></div>
-                <form action="order" method="post">
-                    <button type="submit" class="checkout-btn">Proceed to Checkout</button>
-                </form>
+                <a href="payment.jsp" class="checkout-btn">Proceed to Checkout</a>
                 <a href="products" class="continue-shopping">← Continue Shopping</a>
             </div>
         <% } %>

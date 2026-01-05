@@ -29,11 +29,19 @@ public class OrderServlet extends HttpServlet {
             return;
         }
 
+        // Get payment method from form
+        String paymentMethod = req.getParameter("method");
+        if (paymentMethod == null || paymentMethod.isEmpty()) {
+            res.sendRedirect(req.getContextPath() + "/payment.jsp");
+            return;
+        }
+
         try {
             // Create Order object
             Order order = new Order();
             order.setStatus("Pending");
             order.setUser(user);
+            order.setPaymentMethod(paymentMethod);
 
             // Group cart items by product so quantities are tracked correctly
             Map<Integer, Product> productById = new LinkedHashMap<>();
@@ -64,12 +72,13 @@ public class OrderServlet extends HttpServlet {
             try (Connection conn = DatabaseConnection.getConnection()) {
                 conn.setAutoCommit(false);
 
-                String insertOrderSql = "INSERT INTO orders (user_username, total_amount, status, created_at) VALUES (?,?,?,NOW())";
+                String insertOrderSql = "INSERT INTO orders (user_username, total_amount, status, payment_method, created_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP)";
                 int dbOrderId = 0;
                 try (PreparedStatement ps = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
                     ps.setString(1, user.getUsername());
                     ps.setDouble(2, total);
                     ps.setString(3, order.getStatus());
+                    ps.setString(4, paymentMethod);
                     ps.executeUpdate();
                     try (ResultSet rs = ps.getGeneratedKeys()) {
                         if (rs.next()) {
@@ -110,13 +119,35 @@ public class OrderServlet extends HttpServlet {
                 }
 
                 // After creating the order, clear the user's cart items from carts/cart_items
-                String clearSql = "DELETE ci FROM cart_items ci " +
-                        "JOIN carts c ON ci.cart_id = c.cart_id " +
-                        "JOIN users u ON c.user_id = u.user_id " +
-                        "WHERE u.username = ?";
-                try (PreparedStatement psClear = conn.prepareStatement(clearSql)) {
-                    psClear.setString(1, user.getUsername());
-                    psClear.executeUpdate();
+                // First get cart_id for the customer
+                int cartId = 0;
+                String getCartSql = "SELECT cart_id FROM carts WHERE customer_username = ?";
+                try (PreparedStatement psGetCart = conn.prepareStatement(getCartSql)) {
+                    psGetCart.setString(1, user.getUsername());
+                    try (ResultSet rsCart = psGetCart.executeQuery()) {
+                        if (rsCart.next()) {
+                            cartId = rsCart.getInt("cart_id");
+                        }
+                    }
+                }
+                
+                // Clear cart items if cart exists
+                if (cartId > 0) {
+                    String clearSql = "DELETE FROM cart_items WHERE cart_id = ?";
+                    try (PreparedStatement psClear = conn.prepareStatement(clearSql)) {
+                        psClear.setInt(1, cartId);
+                        psClear.executeUpdate();
+                    }
+                }
+                
+                // Create initial order tracking
+                String trackingSql = "INSERT INTO order_tracking (order_id, current_location, estimated_delivery, last_updated) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+                try (PreparedStatement psTrack = conn.prepareStatement(trackingSql)) {
+                    psTrack.setInt(1, dbOrderId);
+                    psTrack.setString(2, "Order Placed - Processing");
+                    // Set estimated delivery to 7 days from now
+                    psTrack.setTimestamp(3, new Timestamp(System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000)));
+                    psTrack.executeUpdate();
                 }
 
                 conn.commit();
@@ -130,9 +161,13 @@ public class OrderServlet extends HttpServlet {
             session.setAttribute("orderTotal", total);
             session.removeAttribute("cart");
 
-            // Generate order ID for display
-            String orderId = "ORD" + System.currentTimeMillis();
-            req.setAttribute("orderId", orderId);
+            // Pass the actual database order ID to orderSuccess page
+            Integer dbOrderId = (Integer) session.getAttribute("orderDbId");
+            if (dbOrderId != null && dbOrderId > 0) {
+                req.setAttribute("orderId", "ORD" + dbOrderId);
+            } else {
+                req.setAttribute("orderId", "ORD" + System.currentTimeMillis());
+            }
 
             // Redirect to order success page
             req.getRequestDispatcher("/orderSuccess.jsp").forward(req, res);

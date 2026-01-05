@@ -32,52 +32,38 @@ public class CartServlet extends HttpServlet {
 
         if (user != null) {
             try (Connection conn = DatabaseConnection.getConnection()) {
-                // Look up the numeric user_id for this username
-                Integer userId = null;
-                try (PreparedStatement psUser = conn.prepareStatement(
-                        "SELECT user_id FROM users WHERE username = ?")) {
-                    psUser.setString(1, user.getUsername());
-                    try (ResultSet rsUser = psUser.executeQuery()) {
-                        if (rsUser.next()) {
-                            userId = rsUser.getInt("user_id");
+                // Find the latest cart for this user
+                Integer cartId = null;
+                try (PreparedStatement psCart = conn.prepareStatement(
+                        "SELECT cart_id FROM carts WHERE customer_username = ? ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY")) {
+                    psCart.setString(1, user.getUsername());
+                    try (ResultSet rsCart = psCart.executeQuery()) {
+                        if (rsCart.next()) {
+                            cartId = rsCart.getInt("cart_id");
                         }
                     }
                 }
 
-                if (userId != null) {
-                    // Find the latest cart for this user
-                    Integer cartId = null;
-                    try (PreparedStatement psCart = conn.prepareStatement(
-                            "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
-                        psCart.setInt(1, userId);
-                        try (ResultSet rsCart = psCart.executeQuery()) {
-                            if (rsCart.next()) {
-                                cartId = rsCart.getInt("cart_id");
-                            }
-                        }
-                    }
-
-                    if (cartId != null) {
-                        // Load cart items and join products to get details
-                        String sql = "SELECT ci.product_id, ci.quantity, p.name, p.price, p.image " +
-                                "FROM cart_items ci " +
-                                "JOIN products p ON ci.product_id = p.product_id " +
-                                "WHERE ci.cart_id = ? ORDER BY ci.added_at ASC";
-                        try (PreparedStatement psItems = conn.prepareStatement(sql)) {
-                            psItems.setInt(1, cartId);
-                            try (ResultSet rs = psItems.executeQuery()) {
-                                while (rs.next()) {
-                                    int pid = rs.getInt("product_id");
-                                    int qty = rs.getInt("quantity");
-                                    Product p = new Product();
-                                    p.setId(pid);
-                                    p.setName(rs.getString("name"));
-                                    p.setPrice(rs.getDouble("price"));
-                                    p.setImage(rs.getString("image") != null ? rs.getString("image") : "");
-                                    // Add one Product instance per quantity to match existing logic
-                                    for (int i = 0; i < qty; i++) {
-                                        cart.add(p);
-                                    }
+                if (cartId != null) {
+                    // Load cart items and join products to get details
+                    String sql = "SELECT ci.product_id, ci.quantity, p.name, p.price, p.image " +
+                            "FROM cart_items ci " +
+                            "JOIN products p ON ci.product_id = p.product_id " +
+                            "WHERE ci.cart_id = ?";
+                    try (PreparedStatement psItems = conn.prepareStatement(sql)) {
+                        psItems.setInt(1, cartId);
+                        try (ResultSet rs = psItems.executeQuery()) {
+                            while (rs.next()) {
+                                int pid = rs.getInt("product_id");
+                                int qty = rs.getInt("quantity");
+                                Product p = new Product();
+                                p.setId(pid);
+                                p.setName(rs.getString("name"));
+                                p.setPrice(rs.getDouble("price"));
+                                p.setImage(rs.getString("image") != null ? rs.getString("image") : "");
+                                // Add one Product instance per quantity to match existing logic
+                                for (int i = 0; i < qty; i++) {
+                                    cart.add(p);
                                 }
                             }
                         }
@@ -157,56 +143,42 @@ public class CartServlet extends HttpServlet {
             User user = (User) session.getAttribute("user");
             if (user != null) {
                 try (Connection conn = DatabaseConnection.getConnection()) {
-                    // Look up numeric user_id
-                    Integer userId = null;
-                    try (PreparedStatement psUser = conn.prepareStatement(
-                            "SELECT user_id FROM users WHERE username = ?")) {
-                        psUser.setString(1, user.getUsername());
-                        try (ResultSet rsUser = psUser.executeQuery()) {
-                            if (rsUser.next()) {
-                                userId = rsUser.getInt("user_id");
+                    // Find or create a cart for this user
+                    Integer cartId = null;
+                    try (PreparedStatement psCart = conn.prepareStatement(
+                            "SELECT cart_id FROM carts WHERE customer_username = ? ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY")) {
+                        psCart.setString(1, user.getUsername());
+                        try (ResultSet rsCart = psCart.executeQuery()) {
+                            if (rsCart.next()) {
+                                cartId = rsCart.getInt("cart_id");
                             }
                         }
                     }
 
-                    if (userId != null) {
-                        // Find or create a cart for this user
-                        Integer cartId = null;
-                        try (PreparedStatement psCart = conn.prepareStatement(
-                                "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
-                            psCart.setInt(1, userId);
-                            try (ResultSet rsCart = psCart.executeQuery()) {
-                                if (rsCart.next()) {
-                                    cartId = rsCart.getInt("cart_id");
+                    if (cartId == null) {
+                        try (PreparedStatement psNewCart = conn.prepareStatement(
+                                "INSERT INTO carts (customer_username, created_at) VALUES (?, CURRENT_TIMESTAMP)",
+                                Statement.RETURN_GENERATED_KEYS)) {
+                            psNewCart.setString(1, user.getUsername());
+                            psNewCart.executeUpdate();
+                            try (ResultSet rsNew = psNewCart.getGeneratedKeys()) {
+                                if (rsNew.next()) {
+                                    cartId = rsNew.getInt(1);
                                 }
                             }
                         }
+                    }
 
-                        if (cartId == null) {
-                            try (PreparedStatement psNewCart = conn.prepareStatement(
-                                    "INSERT INTO carts (user_id, created_at) VALUES (?, NOW())",
-                                    Statement.RETURN_GENERATED_KEYS)) {
-                                psNewCart.setInt(1, userId);
-                                psNewCart.executeUpdate();
-                                try (ResultSet rsNew = psNewCart.getGeneratedKeys()) {
-                                    if (rsNew.next()) {
-                                        cartId = rsNew.getInt(1);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (cartId != null) {
-                            // Insert or increment quantity in cart_items
-                            // For simplicity, just insert a new row per add and
-                            // let reads aggregate quantities.
-                            try (PreparedStatement psItem = conn.prepareStatement(
-                                    "INSERT INTO cart_items (cart_id, product_id, quantity, added_at) VALUES (?,?,?,NOW())")) {
-                                psItem.setInt(1, cartId);
-                                psItem.setInt(2, id);
-                                psItem.setInt(3, quantity);
-                                psItem.executeUpdate();
-                            }
+                    if (cartId != null) {
+                        // Insert or increment quantity in cart_items
+                        // For simplicity, just insert a new row per add and
+                        // let reads aggregate quantities.
+                        try (PreparedStatement psItem = conn.prepareStatement(
+                                "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?,?,?)")) {
+                            psItem.setInt(1, cartId);
+                            psItem.setInt(2, id);
+                            psItem.setInt(3, quantity);
+                            psItem.executeUpdate();
                         }
                     }
                 } catch (SQLException e) {
@@ -236,36 +208,23 @@ public class CartServlet extends HttpServlet {
                 User user = (User) session.getAttribute("user");
                 if (user != null) {
                     try (Connection conn = DatabaseConnection.getConnection()) {
-                        Integer userId = null;
-                        try (PreparedStatement psUser = conn.prepareStatement(
-                                "SELECT user_id FROM users WHERE username = ?")) {
-                            psUser.setString(1, user.getUsername());
-                            try (ResultSet rsUser = psUser.executeQuery()) {
-                                if (rsUser.next()) {
-                                    userId = rsUser.getInt("user_id");
+                        Integer cartId = null;
+                        try (PreparedStatement psCart = conn.prepareStatement(
+                                "SELECT cart_id FROM carts WHERE customer_username = ? ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY")) {
+                            psCart.setString(1, user.getUsername());
+                            try (ResultSet rsCart = psCart.executeQuery()) {
+                                if (rsCart.next()) {
+                                    cartId = rsCart.getInt("cart_id");
                                 }
                             }
                         }
 
-                        if (userId != null) {
-                            Integer cartId = null;
-                            try (PreparedStatement psCart = conn.prepareStatement(
-                                    "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
-                                psCart.setInt(1, userId);
-                                try (ResultSet rsCart = psCart.executeQuery()) {
-                                    if (rsCart.next()) {
-                                        cartId = rsCart.getInt("cart_id");
-                                    }
-                                }
-                            }
-
-                            if (cartId != null) {
-                                try (PreparedStatement ps = conn.prepareStatement(
-                                        "DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?")) {
-                                    ps.setInt(1, cartId);
-                                    ps.setInt(2, productId);
-                                    ps.executeUpdate();
-                                }
+                        if (cartId != null) {
+                            try (PreparedStatement ps = conn.prepareStatement(
+                                    "DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?")) {
+                                ps.setInt(1, cartId);
+                                ps.setInt(2, productId);
+                                ps.executeUpdate();
                             }
                         }
                     } catch (SQLException e) {
@@ -278,19 +237,7 @@ public class CartServlet extends HttpServlet {
                 if (indexParam != null && !indexParam.isEmpty()) {
                     int index = Integer.parseInt(indexParam);
                     if (index >= 0 && index < cart.size()) {
-                        Product removed = cart.remove(index);
-                        User user = (User) session.getAttribute("user");
-                        if (user != null && removed != null) {
-                            try (Connection conn = DatabaseConnection.getConnection();
-                                    PreparedStatement ps = conn.prepareStatement(
-                                            "DELETE FROM cart_items WHERE user_username = ? AND product_id = ? LIMIT 1")) {
-                                ps.setString(1, user.getUsername());
-                                ps.setInt(2, removed.getId());
-                                ps.executeUpdate();
-                            } catch (SQLException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        cart.remove(index);
                     }
                 }
             }
@@ -304,35 +251,22 @@ public class CartServlet extends HttpServlet {
             User user = (User) session.getAttribute("user");
             if (user != null) {
                 try (Connection conn = DatabaseConnection.getConnection()) {
-                    Integer userId = null;
-                    try (PreparedStatement psUser = conn.prepareStatement(
-                            "SELECT user_id FROM users WHERE username = ?")) {
-                        psUser.setString(1, user.getUsername());
-                        try (ResultSet rsUser = psUser.executeQuery()) {
-                            if (rsUser.next()) {
-                                userId = rsUser.getInt("user_id");
+                    Integer cartId = null;
+                    try (PreparedStatement psCart = conn.prepareStatement(
+                            "SELECT cart_id FROM carts WHERE customer_username = ? ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY")) {
+                        psCart.setString(1, user.getUsername());
+                        try (ResultSet rsCart = psCart.executeQuery()) {
+                            if (rsCart.next()) {
+                                cartId = rsCart.getInt("cart_id");
                             }
                         }
                     }
 
-                    if (userId != null) {
-                        Integer cartId = null;
-                        try (PreparedStatement psCart = conn.prepareStatement(
-                                "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
-                            psCart.setInt(1, userId);
-                            try (ResultSet rsCart = psCart.executeQuery()) {
-                                if (rsCart.next()) {
-                                    cartId = rsCart.getInt("cart_id");
-                                }
-                            }
-                        }
-
-                        if (cartId != null) {
-                            try (PreparedStatement ps = conn.prepareStatement(
-                                    "DELETE FROM cart_items WHERE cart_id = ?")) {
-                                ps.setInt(1, cartId);
-                                ps.executeUpdate();
-                            }
+                    if (cartId != null) {
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "DELETE FROM cart_items WHERE cart_id = ?")) {
+                            ps.setInt(1, cartId);
+                            ps.executeUpdate();
                         }
                     }
                 } catch (SQLException e) {
@@ -353,50 +287,37 @@ public class CartServlet extends HttpServlet {
             User user = (User) session.getAttribute("user");
             if (user != null) {
                 try (Connection conn = DatabaseConnection.getConnection()) {
-                    Integer userId = null;
-                    try (PreparedStatement psUser = conn.prepareStatement(
-                            "SELECT user_id FROM users WHERE username = ?")) {
-                        psUser.setString(1, user.getUsername());
-                        try (ResultSet rsUser = psUser.executeQuery()) {
-                            if (rsUser.next()) {
-                                userId = rsUser.getInt("user_id");
+                    Integer cartId = null;
+                    try (PreparedStatement psCart = conn.prepareStatement(
+                            "SELECT cart_id FROM carts WHERE customer_username = ? ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY")) {
+                        psCart.setString(1, user.getUsername());
+                        try (ResultSet rsCart = psCart.executeQuery()) {
+                            if (rsCart.next()) {
+                                cartId = rsCart.getInt("cart_id");
                             }
                         }
                     }
 
-                    if (userId != null) {
-                        Integer cartId = null;
-                        try (PreparedStatement psCart = conn.prepareStatement(
-                                "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
-                            psCart.setInt(1, userId);
-                            try (ResultSet rsCart = psCart.executeQuery()) {
-                                if (rsCart.next()) {
-                                    cartId = rsCart.getInt("cart_id");
+                    if (cartId == null) {
+                        try (PreparedStatement psNewCart = conn.prepareStatement(
+                                "INSERT INTO carts (customer_username, created_at) VALUES (?, CURRENT_TIMESTAMP)",
+                                Statement.RETURN_GENERATED_KEYS)) {
+                            psNewCart.setString(1, user.getUsername());
+                            psNewCart.executeUpdate();
+                            try (ResultSet rsNew = psNewCart.getGeneratedKeys()) {
+                                if (rsNew.next()) {
+                                    cartId = rsNew.getInt(1);
                                 }
                             }
                         }
+                    }
 
-                        if (cartId == null) {
-                            try (PreparedStatement psNewCart = conn.prepareStatement(
-                                    "INSERT INTO carts (user_id, created_at) VALUES (?, NOW())",
-                                    Statement.RETURN_GENERATED_KEYS)) {
-                                psNewCart.setInt(1, userId);
-                                psNewCart.executeUpdate();
-                                try (ResultSet rsNew = psNewCart.getGeneratedKeys()) {
-                                    if (rsNew.next()) {
-                                        cartId = rsNew.getInt(1);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (cartId != null) {
-                            try (PreparedStatement psItem = conn.prepareStatement(
-                                    "INSERT INTO cart_items (cart_id, product_id, quantity, added_at) VALUES (?,?,1,NOW())")) {
-                                psItem.setInt(1, cartId);
-                                psItem.setInt(2, id);
-                                psItem.executeUpdate();
-                            }
+                    if (cartId != null) {
+                        try (PreparedStatement psItem = conn.prepareStatement(
+                                "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?,?,1)")) {
+                            psItem.setInt(1, cartId);
+                            psItem.setInt(2, id);
+                            psItem.executeUpdate();
                         }
                     }
                 } catch (SQLException e) {
