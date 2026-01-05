@@ -76,24 +76,30 @@
                     <% for (Order o : customerOrders) { %>
                         <tr>
                             <td>
-                                <%
-                                   Product firstProduct = null;
-                                   if (o.getOrderDetails() != null) {
-                                       for (OrderDetails od : o.getOrderDetails()) {
-                                           Product p = od.getProduct();
-                                           if (p != null && p.getImage() != null && !p.getImage().isEmpty()) {
-                                               firstProduct = p;
-                                               break;
+                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                    <%
+                                       boolean anyImage = false;
+                                       if (o.getOrderDetails() != null) {
+                                           for (OrderDetails od : o.getOrderDetails()) {
+                                               Product p = od.getProduct();
+                                               if (p != null && p.getImage() != null && !p.getImage().isEmpty()) {
+                                    %>
+                                                <a href="product?id=<%= p.getId() %>" style="display:block;">
+                                                    <div class="order-thumb">
+                                                        <img src="<%= p.getImage() %>" alt="<%= p.getName() %>">
+                                                    </div>
+                                                </a>
+                                    <%
+                                                   anyImage = true;
+                                               }
                                            }
                                        }
-                                   }
-                                %>
-                                <div class="order-thumb">
-                                    <% if (firstProduct != null) { %>
-                                        <img src="<%= firstProduct.getImage() %>" alt="<%= firstProduct.getName() %>">
-                                    <% } else { %>
-                                        ◇
-                                    <% } %>
+                                       if (!anyImage) {
+                                    %>
+                                           <div class="order-thumb">◇</div>
+                                    <%
+                                       }
+                                    %>
                                 </div>
                             </td>
                             <td><%= o.getDate() %></td>
@@ -145,24 +151,30 @@
                         %>
                             <tr>
                                 <td>
-                                    <%
-                                       Product firstProduct = null;
-                                       if (o.getOrderDetails() != null) {
-                                           for (OrderDetails od : o.getOrderDetails()) {
-                                               Product p = od.getProduct();
-                                               if (p != null && p.getImage() != null && !p.getImage().isEmpty()) {
-                                                   firstProduct = p;
-                                                   break;
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                        <%
+                                           boolean anyImage = false;
+                                           if (o.getOrderDetails() != null) {
+                                               for (OrderDetails od : o.getOrderDetails()) {
+                                                   Product p = od.getProduct();
+                                                   if (p != null && p.getImage() != null && !p.getImage().isEmpty()) {
+                                        %>
+                                                    <a href="product?id=<%= p.getId() %>" style="display:block;">
+                                                        <div class="order-thumb">
+                                                            <img src="<%= p.getImage() %>" alt="<%= p.getName() %>">
+                                                        </div>
+                                                    </a>
+                                        <%
+                                                       anyImage = true;
+                                                   }
                                                }
                                            }
-                                       }
-                                    %>
-                                    <div class="order-thumb">
-                                        <% if (firstProduct != null) { %>
-                                            <img src="<%= firstProduct.getImage() %>" alt="<%= firstProduct.getName() %>">
-                                        <% } else { %>
-                                            ◇
-                                        <% } %>
+                                           if (!anyImage) {
+                                        %>
+                                               <div class="order-thumb">◇</div>
+                                        <%
+                                           }
+                                        %>
                                     </div>
                                 </td>
                                 <td><%= o.getDate() %></td>

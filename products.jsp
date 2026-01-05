@@ -217,16 +217,7 @@
                             
                             <p class="product-price">$<%= String.format("%.2f", p.getPrice()) %></p>
                         </div>
-                        <div style="padding: 0 25px 25px 25px;" onclick="event.stopPropagation();">
-                            <form action="cart" method="post">
-                                <input type="hidden" name="action" value="add">
-                                <input type="hidden" name="id" value="<%= p.getId() %>">
-                                <input type="hidden" name="name" value="<%= p.getName() %>">
-                                <input type="hidden" name="price" value="<%= p.getPrice() %>">
-                                <input type="hidden" name="image" value="<%= p.getImage() != null ? p.getImage() : "" %>">
-                                <button type="submit" class="add-to-cart-btn" onclick="event.stopPropagation();">Add to Cart</button>
-                            </form>
-                        </div>
+                        
                     </div>
                 <% } %>
             </div>

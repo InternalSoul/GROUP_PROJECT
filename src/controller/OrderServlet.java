@@ -31,24 +31,35 @@ public class OrderServlet extends HttpServlet {
         }
 
         try {
-            // Calculate total
-            double total = 0;
-            for (Product p : cart) {
-                total += p.getPrice();
-            }
-
             // Create Order object
             Order order = new Order();
             order.setStatus("Pending");
             order.setUser(user);
 
-            // Create OrderDetails list
-            List<OrderDetails> detailsList = new ArrayList<>();
+            // Group cart items by product so quantities are tracked correctly
+            Map<Integer, Product> productById = new LinkedHashMap<>();
+            Map<Integer, Integer> quantityById = new LinkedHashMap<>();
             for (Product p : cart) {
-                OrderDetails od = new OrderDetails(1, p.getPrice(), p);
+                int pid = p.getId();
+                if (!productById.containsKey(pid)) {
+                    productById.put(pid, p);
+                    quantityById.put(pid, 0);
+                }
+                quantityById.put(pid, quantityById.get(pid) + 1);
+            }
+
+            // Create OrderDetails list with aggregated quantities
+            List<OrderDetails> detailsList = new ArrayList<>();
+            for (Map.Entry<Integer, Product> entry : productById.entrySet()) {
+                Product p = entry.getValue();
+                int qty = quantityById.get(entry.getKey());
+                OrderDetails od = new OrderDetails(qty, p.getPrice(), p);
                 detailsList.add(od);
             }
             order.setOrderDetails(detailsList);
+
+            // Calculate total based on aggregated order details
+            double total = order.calcTotal();
 
             // Persist order and items immediately for order history
             try (Connection conn = DatabaseConnection.getConnection()) {
@@ -71,13 +82,26 @@ public class OrderServlet extends HttpServlet {
                 if (dbOrderId > 0 && order.getOrderDetails() != null) {
                     order.setId(dbOrderId);
                     String insertItemSql = "INSERT INTO order_items (order_id, product_id, product_name, seller_username, quantity, price) VALUES (?,?,?,?,?,?)";
-                    try (PreparedStatement psItem = conn.prepareStatement(insertItemSql)) {
+                    String sellerLookupSql = "SELECT seller_username FROM products WHERE product_id = ?";
+                    try (PreparedStatement psItem = conn.prepareStatement(insertItemSql);
+                            PreparedStatement psSeller = conn.prepareStatement(sellerLookupSql)) {
                         for (OrderDetails od : order.getOrderDetails()) {
                             Product p = od.getProduct();
+
+                            String sellerUsername = null;
+                            if (p != null) {
+                                psSeller.setInt(1, p.getId());
+                                try (ResultSet rsSeller = psSeller.executeQuery()) {
+                                    if (rsSeller.next()) {
+                                        sellerUsername = rsSeller.getString("seller_username");
+                                    }
+                                }
+                            }
+
                             psItem.setInt(1, dbOrderId);
                             psItem.setInt(2, p != null ? p.getId() : 0);
                             psItem.setString(3, p != null ? p.getName() : null);
-                            psItem.setString(4, p != null ? p.getSellerUsername() : null);
+                            psItem.setString(4, sellerUsername);
                             psItem.setInt(5, od.getQuantity());
                             psItem.setDouble(6, od.getPrice());
                             psItem.addBatch();
@@ -86,10 +110,12 @@ public class OrderServlet extends HttpServlet {
                     }
                 }
 
-                // After creating the order, clear the user's cart_items (move items from cart
-                // to orders)
-                try (PreparedStatement psClear = conn.prepareStatement(
-                        "DELETE FROM cart_items WHERE user_username = ?")) {
+                // After creating the order, clear the user's cart items from carts/cart_items
+                String clearSql = "DELETE ci FROM cart_items ci " +
+                        "JOIN carts c ON ci.cart_id = c.cart_id " +
+                        "JOIN users u ON c.user_id = u.user_id " +
+                        "WHERE u.username = ?";
+                try (PreparedStatement psClear = conn.prepareStatement(clearSql)) {
                     psClear.setString(1, user.getUsername());
                     psClear.executeUpdate();
                 }

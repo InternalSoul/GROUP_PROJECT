@@ -28,6 +28,28 @@
     if (product.getMaterial() != null && !product.getMaterial().isEmpty()) specs.add("Material: " + product.getMaterial());
     if (product.getStockQuantity() > 0) specs.add("Stock: " + product.getStockQuantity() + " pcs available");
     if (product.getCreatedAt() != null) specs.add("Listed on: " + product.getCreatedAt().toLocalDateTime().toLocalDate());
+
+    // Variant data (per-seller availability for size/color) built in servlet.
+    List<Product> variants = (List<Product>) request.getAttribute("variants");
+    Set<String> variantSizes = new LinkedHashSet<>();
+    Set<String> variantColors = new LinkedHashSet<>();
+    Map<String, Boolean> sizeAvailable = new HashMap<>();
+    Map<String, Boolean> colorAvailable = new HashMap<>();
+    if (variants != null) {
+        for (Product v : variants) {
+            String vs = v.getSize();
+            String vc = v.getColor();
+            boolean avail = v.isInStock() && v.getStockQuantity() > 0;
+            if (vs != null && !vs.isEmpty()) {
+                variantSizes.add(vs);
+                sizeAvailable.put(vs, sizeAvailable.containsKey(vs) ? (sizeAvailable.get(vs) || avail) : avail);
+            }
+            if (vc != null && !vc.isEmpty()) {
+                variantColors.add(vc);
+                colorAvailable.put(vc, colorAvailable.containsKey(vc) ? (colorAvailable.get(vc) || avail) : avail);
+            }
+        }
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -46,6 +68,7 @@
         .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
         .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
         .navbar .nav-links a:hover { opacity: 0.6; }
+        .cart-count { background: #1a1a1a; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
         .user-name { color: #888; font-size: 0.85em; }
         .page { max-width: 1200px; margin: 40px auto 60px; padding: 0 40px; }
         .breadcrumbs { font-size: 0.85em; color: #475569; margin-bottom: 20px; }
@@ -91,6 +114,9 @@
         .review-rating { color: #f59e0b; font-weight: 700; }
         .review-comment { color: #0f172a; line-height: 1.5; }
         .empty { padding: 18px; border: 1px dashed #cbd5e1; border-radius: 10px; color: #475569; background: #f8fafc; }
+        .variant-pill { padding: 8px 12px; border-radius: 999px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.9em; cursor: pointer; }
+        .variant-pill-selected { border-color: #0f172a; background: #0f172a; color: #fff; }
+        .variant-pill[disabled] { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; }
         @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .navbar { padding: 16px 30px; } .page { padding: 0 24px; } }
     </style>
 </head>
@@ -122,26 +148,21 @@
                 </div>
                 <div class="rating">★ <%= String.format("%.1f", averageRating) %> <span>(<%= reviewCount %> reviews)</span></div>
                 <div class="price">$<%= String.format("%.2f", product.getPrice()) %></div>
+                <% if (product.getStockQuantity() > 0) { %>
+                    <div style="font-size:0.95em; color:#475569; margin-bottom:4px;">
+                        <%= product.getStockQuantity() %> pieces available
+                    </div>
+                <% } %>
                 <div class="stock-row">
                     <% if (product.isInStock()) { %>
                         <span class="stock-pill in">In Stock</span>
                     <% } else { %>
                         <span class="stock-pill out">Out of Stock</span>
                     <% } %>
-                    <% if (product.getStockQuantity() > 0) { %>
-                        <span><%= product.getStockQuantity() %> pieces available</span>
-                    <% } %>
                 </div>
                 <p class="desc"><%= description %></p>
                 <div class="actions">
-                    <form action="cart" method="post" style="display:flex; gap:12px; flex-wrap: wrap; align-items: center;">
-                        <input type="hidden" name="action" value="add">
-                        <input type="hidden" name="id" value="<%= product.getId() %>">
-                        <input type="hidden" name="name" value="<%= product.getName() %>">
-                        <input type="hidden" name="price" value="<%= product.getPrice() %>">
-                        <input type="hidden" name="image" value="<%= (product.getImage() != null ? product.getImage() : "") %>">
-                        <button type="submit" class="btn btn-primary">Add to Cart</button>
-                    </form>
+                    <button type="button" id="openAddToCart" class="btn btn-primary">Add to Cart</button>
                     <a href="products" class="btn btn-ghost" style="text-decoration:none; display:inline-flex; align-items:center;">Back to Shop</a>
                 </div>
 
@@ -183,5 +204,299 @@
             <% } %>
         </div>
     </div>
+
+    <!-- Add to Cart Modal -->
+    <div id="addToCartOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.55); display:none; align-items:center; justify-content:center; z-index:50;">
+        <div style="background:#fff; border-radius:18px; max-width:480px; width:100%; padding:24px 24px 28px; box-shadow:0 20px 60px rgba(15,23,42,0.35); position:relative;">
+            <button type="button" id="closeAddToCart" style="position:absolute; top:14px; right:16px; border:none; background:transparent; font-size:1.2em; cursor:pointer;">×</button>
+            <h2 style="font-family:'Cormorant Garamond', serif; font-size:1.8em; margin-bottom:8px;">Add to Cart</h2>
+            <p style="color:#64748b; font-size:0.9em; margin-bottom:18px;">Choose any add-ons and quantity, then confirm.</p>
+
+            <form id="addToCartForm" action="cart" method="post" style="display:flex; flex-direction:column; gap:16px;">
+                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="id" value="<%= product.getId() %>">
+                <input type="hidden" name="name" value="<%= product.getName() %>">
+                <input type="hidden" name="price" id="unitPriceInput" value="<%= product.getPrice() %>">
+                <input type="hidden" name="image" value="<%= (product.getImage() != null ? product.getImage() : "") %>">
+                <input type="hidden" name="sellerUsername" value="<%= product.getSellerUsername() != null ? product.getSellerUsername() : "" %>">
+
+                <div>
+                    <div style="font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; margin-bottom:8px;">Base Price</div>
+                    <div style="font-size:1.1em; font-weight:600;">$<span id="basePriceDisplay"><%= String.format("%.2f", product.getPrice()) %></span></div>
+                </div>
+
+                <%
+                    // Fallbacks: if no variant list from DB, try to use the product's own size/color
+                    boolean hasVariantSizes = !variantSizes.isEmpty();
+                    boolean hasVariantColors = !variantColors.isEmpty();
+
+                    List<String> fallbackSizes = new ArrayList<>();
+                    if (!hasVariantSizes && product.getSize() != null && !product.getSize().isEmpty()) {
+                        String[] parts = product.getSize().split("[, ]+");
+                        for (String p : parts) {
+                            if (!p.isEmpty()) { fallbackSizes.add(p); }
+                        }
+                    }
+                    boolean showSizeSection = hasVariantSizes || !fallbackSizes.isEmpty();
+
+                    List<String> fallbackColors = new ArrayList<>();
+                    if (!hasVariantColors && product.getColor() != null && !product.getColor().isEmpty()) {
+                        String[] partsC = product.getColor().split("[, ]+");
+                        for (String p : partsC) {
+                            if (!p.isEmpty()) { fallbackColors.add(p); }
+                        }
+                    }
+                    boolean showColorSection = hasVariantColors || !fallbackColors.isEmpty();
+                %>
+
+                <!-- Size options (variants if available, otherwise fallback to product size field) -->
+                <% if (showSizeSection) { %>
+                <div>
+                    <div style="font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; margin-bottom:8px;">Size</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;" id="sizeOptions">
+                        <% if (hasVariantSizes) { %>
+                            <% for (String s : variantSizes) { boolean avail = Boolean.TRUE.equals(sizeAvailable.get(s)); %>
+                                <button type="button" class="variant-pill" data-variant-type="size" data-value="<%= s %>" <%= avail ? "" : "disabled" %>><%= s %></button>
+                            <% } %>
+                        <% } else { %>
+                            <% for (String s : fallbackSizes) { boolean avail = product.isInStock() && product.getStockQuantity() > 0; %>
+                                <button type="button" class="variant-pill" data-variant-type="size" data-value="<%= s %>" <%= avail ? "" : "disabled" %>><%= s %></button>
+                            <% } %>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- Color options (variants if available, otherwise fallback to product color field) -->
+                <% if (showColorSection) { %>
+                <div>
+                    <div style="font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; margin-bottom:8px;">Color</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;" id="colorOptions">
+                        <% if (hasVariantColors) { %>
+                            <% for (String c : variantColors) { boolean avail = Boolean.TRUE.equals(colorAvailable.get(c)); %>
+                                <button type="button" class="variant-pill" data-variant-type="color" data-value="<%= c %>" <%= avail ? "" : "disabled" %>><%= c %></button>
+                            <% } %>
+                        <% } else { %>
+                            <% for (String c : fallbackColors) { boolean avail = product.isInStock() && product.getStockQuantity() > 0; %>
+                                <button type="button" class="variant-pill" data-variant-type="color" data-value="<%= c %>" <%= avail ? "" : "disabled" %>><%= c %></button>
+                            <% } %>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+
+                <div>
+                    <div style="font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; margin-bottom:8px;">Add-ons</div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0; cursor:pointer;">
+                            <span style="font-size:0.9em;">No add-ons</span>
+                            <span style="font-size:0.85em; color:#64748b;">+$0.00</span>
+                            <input type="radio" name="addonOption" value="none" data-extra="0" checked style="margin-left:8px;">
+                        </label>
+                        <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0; cursor:pointer;">
+                            <span style="font-size:0.9em;">Gift wrap</span>
+                            <span style="font-size:0.85em; color:#64748b;">+&dollar;5.00</span>
+                            <input type="radio" name="addonOption" value="giftwrap" data-extra="5" style="margin-left:8px;">
+                        </label>
+                        <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0; cursor:pointer;">
+                            <span style="font-size:0.9em;">Premium care package</span>
+                            <span style="font-size:0.85em; color:#64748b;">+&dollar;15.00</span>
+                            <input type="radio" name="addonOption" value="premium" data-extra="15" style="margin-left:8px;">
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                    <div>
+                        <div style="font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; margin-bottom:6px;">Quantity</div>
+                        <input type="number" name="quantity" id="quantityInput" value="1" min="1" style="width:80px; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0; font-size:0.95em;">
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; margin-bottom:6px;">Estimated Total</div>
+                        <div style="font-size:1.2em; font-weight:700;">$<span id="totalPriceDisplay"><%= String.format("%.2f", product.getPrice()) %></span></div>
+                        <div style="font-size:0.8em; color:#94a3b8;">Per item: $<span id="unitPriceDisplay"><%= String.format("%.2f", product.getPrice()) %></span></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:6px;">Confirm & Add to Cart</button>
+            </form>
+        </div>
+    </div>
 </body>
+<script>
+    (function() {
+        const overlay = document.getElementById('addToCartOverlay');
+        const openBtn = document.getElementById('openAddToCart');
+        const closeBtn = document.getElementById('closeAddToCart');
+        const quantityInput = document.getElementById('quantityInput');
+        const addonOptions = document.querySelectorAll('input[name="addonOption"]');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+        const unitPriceDisplaySpan = document.getElementById('unitPriceDisplay');
+        const unitPriceInput = document.getElementById('unitPriceInput');
+        const basePriceDisplaySpan = document.getElementById('basePriceDisplay');
+        const productIdInput = document.querySelector('#addToCartForm input[name="id"]');
+        const imageInput = document.querySelector('#addToCartForm input[name="image"]');
+
+        const sizeButtons = document.querySelectorAll('#sizeOptions .variant-pill');
+        const colorButtons = document.querySelectorAll('#colorOptions .variant-pill');
+
+        // Variant data for size/color combinations and availability
+        const variants = [
+        <% if (variants != null) { for (int i = 0; i < variants.size(); i++) { Product v = variants.get(i); %>
+            {
+                id: <%= v.getId() %>,
+                size: "<%= v.getSize() != null ? v.getSize() : "" %>",
+                color: "<%= v.getColor() != null ? v.getColor() : "" %>",
+                price: <%= v.getPrice() %>,
+                image: "<%= v.getImage() != null ? v.getImage() : "" %>",
+                inStock: <%= v.isInStock() %>,
+                stock: <%= v.getStockQuantity() %>
+            }<%= (i < variants.size() - 1 ? "," : "") %>
+        <% } } %>
+        ];
+
+        let selectedSize = null;
+        let selectedColor = null;
+        let currentVariant = null;
+
+        function pickDefaultVariant() {
+            if (variants.length === 0) {
+                currentVariant = {
+                    id: <%= product.getId() %>,
+                    size: "<%= product.getSize() != null ? product.getSize() : "" %>",
+                    color: "<%= product.getColor() != null ? product.getColor() : "" %>",
+                    price: <%= product.getPrice() %>,
+                    image: "<%= product.getImage() != null ? product.getImage() : "" %>",
+                    inStock: <%= product.isInStock() %>,
+                    stock: <%= product.getStockQuantity() %>
+                };
+                return;
+            }
+            // Prefer the actual product id as the default variant if present
+            currentVariant = variants.find(v => v.id === <%= product.getId() %>) || variants[0];
+            selectedSize = currentVariant.size || null;
+            selectedColor = currentVariant.color || null;
+        }
+
+        function updateVariantSelectionClasses() {
+            sizeButtons.forEach(btn => {
+                btn.classList.remove('variant-pill-selected');
+                if (selectedSize && btn.getAttribute('data-value') === selectedSize) {
+                    btn.classList.add('variant-pill-selected');
+                }
+            });
+            colorButtons.forEach(btn => {
+                btn.classList.remove('variant-pill-selected');
+                if (selectedColor && btn.getAttribute('data-value') === selectedColor) {
+                    btn.classList.add('variant-pill-selected');
+                }
+            });
+        }
+
+        function recalcCurrentVariant() {
+            if (variants.length === 0) {
+                return;
+            }
+            let candidate = variants.slice();
+            if (selectedSize) {
+                candidate = candidate.filter(v => v.size === selectedSize);
+            }
+            if (selectedColor) {
+                candidate = candidate.filter(v => v.color === selectedColor);
+            }
+            if (candidate.length === 0) {
+                candidate = variants;
+            }
+            currentVariant = candidate[0];
+        }
+
+        function applyCurrentVariant() {
+            if (!currentVariant) return;
+            productIdInput.value = currentVariant.id;
+            if (currentVariant.image) {
+                imageInput.value = currentVariant.image;
+            }
+            basePriceDisplaySpan.textContent = currentVariant.price.toFixed(2);
+        }
+
+        function currentExtra() {
+            let extra = 0;
+            addonOptions.forEach(function(opt) {
+                if (opt.checked) {
+                    extra = parseFloat(opt.getAttribute('data-extra')) || 0;
+                }
+            });
+            return extra;
+        }
+
+        function updatePrices() {
+            const basePrice = currentVariant ? currentVariant.price : parseFloat('<%= product.getPrice() %>');
+            const extra = currentExtra();
+            const qty = Math.max(1, parseInt(quantityInput.value || '1', 10));
+            const unit = basePrice + extra;
+            const total = unit * qty;
+
+            unitPriceDisplaySpan.textContent = unit.toFixed(2);
+            totalPriceDisplay.textContent = total.toFixed(2);
+            unitPriceInput.value = unit.toFixed(2);
+        }
+
+        // Wire up size/color selection
+        sizeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (btn.disabled) return;
+                selectedSize = btn.getAttribute('data-value');
+                updateVariantSelectionClasses();
+                recalcCurrentVariant();
+                applyCurrentVariant();
+                updatePrices();
+            });
+        });
+
+        colorButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (btn.disabled) return;
+                selectedColor = btn.getAttribute('data-value');
+                updateVariantSelectionClasses();
+                recalcCurrentVariant();
+                applyCurrentVariant();
+                updatePrices();
+            });
+        });
+
+        if (openBtn) {
+            openBtn.addEventListener('click', function() {
+                overlay.style.display = 'flex';
+                // Ensure a variant is picked before first open
+                if (!currentVariant) {
+                    pickDefaultVariant();
+                    updateVariantSelectionClasses();
+                    applyCurrentVariant();
+                }
+                updatePrices();
+            });
+        }
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                overlay.style.display = 'none';
+            });
+        }
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.style.display = 'none';
+            }
+        });
+
+        addonOptions.forEach(function(opt) {
+            opt.addEventListener('change', updatePrices);
+        });
+        quantityInput.addEventListener('input', updatePrices);
+
+        // Initialize variant and pricing for first load
+        pickDefaultVariant();
+        updateVariantSelectionClasses();
+        applyCurrentVariant();
+        updatePrices();
+    })();
+</script>
 </html>

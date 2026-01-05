@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import model.Product;
 import model.User;
 import model.DatabaseConnection;
@@ -26,30 +27,79 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
-        // Load cart items from cart_items table for this user
+        // Always use the database (carts + cart_items + products) as the
+        // source of truth so that items persist across logout/login.
         User user = (User) session.getAttribute("user");
         List<Product> cart = new ArrayList<>();
+
         if (user != null) {
-            try (Connection conn = DatabaseConnection.getConnection();
-                    PreparedStatement ps = conn.prepareStatement(
-                            "SELECT product_id, product_name, price, image FROM cart_items WHERE user_username = ? ORDER BY created_at ASC")) {
-                ps.setString(1, user.getUsername());
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Product p = new Product();
-                        p.setId(rs.getInt("product_id"));
-                        p.setName(rs.getString("product_name"));
-                        p.setPrice(rs.getDouble("price"));
-                        p.setImage(rs.getString("image"));
-                        cart.add(p);
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                // Look up the numeric user_id for this username
+                Integer userId = null;
+                try (PreparedStatement psUser = conn.prepareStatement(
+                        "SELECT user_id FROM users WHERE username = ?")) {
+                    psUser.setString(1, user.getUsername());
+                    try (ResultSet rsUser = psUser.executeQuery()) {
+                        if (rsUser.next()) {
+                            userId = rsUser.getInt("user_id");
+                        }
+                    }
+                }
+
+                if (userId != null) {
+                    // Find the latest cart for this user
+                    Integer cartId = null;
+                    try (PreparedStatement psCart = conn.prepareStatement(
+                            "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
+                        psCart.setInt(1, userId);
+                        try (ResultSet rsCart = psCart.executeQuery()) {
+                            if (rsCart.next()) {
+                                cartId = rsCart.getInt("cart_id");
+                            }
+                        }
+                    }
+
+                    if (cartId != null) {
+                        // Load cart items and join products to get details
+                        String sql = "SELECT ci.product_id, ci.quantity, p.name, p.price, p.image " +
+                                "FROM cart_items ci " +
+                                "JOIN products p ON ci.product_id = p.product_id " +
+                                "WHERE ci.cart_id = ? ORDER BY ci.added_at ASC";
+                        try (PreparedStatement psItems = conn.prepareStatement(sql)) {
+                            psItems.setInt(1, cartId);
+                            try (ResultSet rs = psItems.executeQuery()) {
+                                while (rs.next()) {
+                                    int pid = rs.getInt("product_id");
+                                    int qty = rs.getInt("quantity");
+                                    Product p = new Product();
+                                    p.setId(pid);
+                                    p.setName(rs.getString("name"));
+                                    p.setPrice(rs.getDouble("price"));
+                                    p.setImage(rs.getString("image") != null ? rs.getString("image") : "");
+                                    // Add one Product instance per quantity to match existing logic
+                                    for (int i = 0; i < qty; i++) {
+                                        cart.add(p);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             } catch (SQLException e) {
+                // If the DB fails for some reason, fall back to whatever is in
+                // the session so the user still sees their current cart.
+                @SuppressWarnings("unchecked")
+                List<Product> sessionCart = (List<Product>) session.getAttribute("cart");
+                if (sessionCart != null) {
+                    cart.clear();
+                    cart.addAll(sessionCart);
+                }
                 e.printStackTrace();
             }
         }
 
-        // Keep session cart in sync with DB-backed cart
+        // Mirror DB-backed cart into the session (even if empty) so the rest
+        // of the app/header can read from the same source.
         session.setAttribute("cart", cart);
 
         req.getRequestDispatcher("/cart.jsp").forward(req, res);
@@ -80,25 +130,87 @@ public class CartServlet extends HttpServlet {
             String name = req.getParameter("name");
             double price = Double.parseDouble(req.getParameter("price"));
             int id = Integer.parseInt(req.getParameter("id"));
+            String quantityParam = req.getParameter("quantity");
+            int quantity = 1;
+            try {
+                if (quantityParam != null) {
+                    quantity = Integer.parseInt(quantityParam);
+                }
+            } catch (NumberFormatException ignored) {
+                quantity = 1;
+            }
+            if (quantity < 1) {
+                quantity = 1;
+            }
             String image = req.getParameter("image");
+            String sellerUsername = req.getParameter("sellerUsername");
 
-            Product product = new Product(id, name, price, image != null ? image : "");
-            cart.add(product);
+            // Add one Product instance per quantity to the in-memory cart to
+            // keep existing logic simple (each entry is treated as 1 unit).
+            for (int i = 0; i < quantity; i++) {
+                Product product = new Product(id, name, price, image != null ? image : "");
+                if (sellerUsername != null) {
+                    product.setSellerUsername(sellerUsername);
+                }
+                cart.add(product);
+            }
 
-            // Also record cart item in database
+            // Also record cart item in database using carts/cart_items schema
             User user = (User) session.getAttribute("user");
             if (user != null) {
-                try (Connection conn = DatabaseConnection.getConnection();
-                        PreparedStatement ps = conn.prepareStatement(
-                                "INSERT INTO cart_items (user_username, product_id, product_name, price, image, quantity, created_at) "
-                                        +
-                                        "VALUES (?,?,?,?,?,1,NOW())")) {
-                    ps.setString(1, user.getUsername());
-                    ps.setInt(2, id);
-                    ps.setString(3, name);
-                    ps.setDouble(4, price);
-                    ps.setString(5, image != null ? image : "");
-                    ps.executeUpdate();
+                try (Connection conn = DatabaseConnection.getConnection()) {
+                    // Look up numeric user_id
+                    Integer userId = null;
+                    try (PreparedStatement psUser = conn.prepareStatement(
+                            "SELECT user_id FROM users WHERE username = ?")) {
+                        psUser.setString(1, user.getUsername());
+                        try (ResultSet rsUser = psUser.executeQuery()) {
+                            if (rsUser.next()) {
+                                userId = rsUser.getInt("user_id");
+                            }
+                        }
+                    }
+
+                    if (userId != null) {
+                        // Find or create a cart for this user
+                        Integer cartId = null;
+                        try (PreparedStatement psCart = conn.prepareStatement(
+                                "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
+                            psCart.setInt(1, userId);
+                            try (ResultSet rsCart = psCart.executeQuery()) {
+                                if (rsCart.next()) {
+                                    cartId = rsCart.getInt("cart_id");
+                                }
+                            }
+                        }
+
+                        if (cartId == null) {
+                            try (PreparedStatement psNewCart = conn.prepareStatement(
+                                    "INSERT INTO carts (user_id, created_at) VALUES (?, NOW())",
+                                    Statement.RETURN_GENERATED_KEYS)) {
+                                psNewCart.setInt(1, userId);
+                                psNewCart.executeUpdate();
+                                try (ResultSet rsNew = psNewCart.getGeneratedKeys()) {
+                                    if (rsNew.next()) {
+                                        cartId = rsNew.getInt(1);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (cartId != null) {
+                            // Insert or increment quantity in cart_items
+                            // For simplicity, just insert a new row per add and
+                            // let reads aggregate quantities.
+                            try (PreparedStatement psItem = conn.prepareStatement(
+                                    "INSERT INTO cart_items (cart_id, product_id, quantity, added_at) VALUES (?,?,?,NOW())")) {
+                                psItem.setInt(1, cartId);
+                                psItem.setInt(2, id);
+                                psItem.setInt(3, quantity);
+                                psItem.executeUpdate();
+                            }
+                        }
+                    }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -107,22 +219,80 @@ public class CartServlet extends HttpServlet {
             res.sendRedirect(req.getContextPath() + "/products");
 
         } else if ("remove".equals(action)) {
-            // Remove item from cart
-            int index = Integer.parseInt(req.getParameter("index"));
-            if (index >= 0 && index < cart.size()) {
-                Product removed = cart.remove(index);
+            // Remove item(s) from cart. When coming from the grouped cart view,
+            // we remove all units of the given product id.
+            String productIdParam = req.getParameter("productId");
+            if (productIdParam != null && !productIdParam.isEmpty()) {
+                int productId = Integer.parseInt(productIdParam);
 
-                // Also remove from cart_items table
+                // Remove all matching items from the in-memory cart
+                Iterator<Product> it = cart.iterator();
+                while (it.hasNext()) {
+                    Product p = it.next();
+                    if (p.getId() == productId) {
+                        it.remove();
+                    }
+                }
+
+                // Remove all matching rows from cart_items table for this user's cart
                 User user = (User) session.getAttribute("user");
-                if (user != null && removed != null) {
-                    try (Connection conn = DatabaseConnection.getConnection();
-                            PreparedStatement ps = conn.prepareStatement(
-                                    "DELETE FROM cart_items WHERE user_username = ? AND product_id = ? LIMIT 1")) {
-                        ps.setString(1, user.getUsername());
-                        ps.setInt(2, removed.getId());
-                        ps.executeUpdate();
+                if (user != null) {
+                    try (Connection conn = DatabaseConnection.getConnection()) {
+                        Integer userId = null;
+                        try (PreparedStatement psUser = conn.prepareStatement(
+                                "SELECT user_id FROM users WHERE username = ?")) {
+                            psUser.setString(1, user.getUsername());
+                            try (ResultSet rsUser = psUser.executeQuery()) {
+                                if (rsUser.next()) {
+                                    userId = rsUser.getInt("user_id");
+                                }
+                            }
+                        }
+
+                        if (userId != null) {
+                            Integer cartId = null;
+                            try (PreparedStatement psCart = conn.prepareStatement(
+                                    "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
+                                psCart.setInt(1, userId);
+                                try (ResultSet rsCart = psCart.executeQuery()) {
+                                    if (rsCart.next()) {
+                                        cartId = rsCart.getInt("cart_id");
+                                    }
+                                }
+                            }
+
+                            if (cartId != null) {
+                                try (PreparedStatement ps = conn.prepareStatement(
+                                        "DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?")) {
+                                    ps.setInt(1, cartId);
+                                    ps.setInt(2, productId);
+                                    ps.executeUpdate();
+                                }
+                            }
+                        }
                     } catch (SQLException e) {
                         e.printStackTrace();
+                    }
+                }
+            } else {
+                // Backward-compatibility: remove by index if provided
+                String indexParam = req.getParameter("index");
+                if (indexParam != null && !indexParam.isEmpty()) {
+                    int index = Integer.parseInt(indexParam);
+                    if (index >= 0 && index < cart.size()) {
+                        Product removed = cart.remove(index);
+                        User user = (User) session.getAttribute("user");
+                        if (user != null && removed != null) {
+                            try (Connection conn = DatabaseConnection.getConnection();
+                                    PreparedStatement ps = conn.prepareStatement(
+                                            "DELETE FROM cart_items WHERE user_username = ? AND product_id = ? LIMIT 1")) {
+                                ps.setString(1, user.getUsername());
+                                ps.setInt(2, removed.getId());
+                                ps.executeUpdate();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
             }
@@ -132,14 +302,41 @@ public class CartServlet extends HttpServlet {
             // Clear cart
             cart.clear();
 
-            // Clear cart_items table for this user
+            // Clear cart_items table for this user's cart
             User user = (User) session.getAttribute("user");
             if (user != null) {
-                try (Connection conn = DatabaseConnection.getConnection();
-                        PreparedStatement ps = conn.prepareStatement(
-                                "DELETE FROM cart_items WHERE user_username = ?")) {
-                    ps.setString(1, user.getUsername());
-                    ps.executeUpdate();
+                try (Connection conn = DatabaseConnection.getConnection()) {
+                    Integer userId = null;
+                    try (PreparedStatement psUser = conn.prepareStatement(
+                            "SELECT user_id FROM users WHERE username = ?")) {
+                        psUser.setString(1, user.getUsername());
+                        try (ResultSet rsUser = psUser.executeQuery()) {
+                            if (rsUser.next()) {
+                                userId = rsUser.getInt("user_id");
+                            }
+                        }
+                    }
+
+                    if (userId != null) {
+                        Integer cartId = null;
+                        try (PreparedStatement psCart = conn.prepareStatement(
+                                "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
+                            psCart.setInt(1, userId);
+                            try (ResultSet rsCart = psCart.executeQuery()) {
+                                if (rsCart.next()) {
+                                    cartId = rsCart.getInt("cart_id");
+                                }
+                            }
+                        }
+
+                        if (cartId != null) {
+                            try (PreparedStatement ps = conn.prepareStatement(
+                                    "DELETE FROM cart_items WHERE cart_id = ?")) {
+                                ps.setInt(1, cartId);
+                                ps.executeUpdate();
+                            }
+                        }
+                    }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -154,19 +351,56 @@ public class CartServlet extends HttpServlet {
 
             cart.add(new Product(id, name, price));
 
-            // Also record cart item in database
+            // Also record cart item in database using carts/cart_items schema
             User user = (User) session.getAttribute("user");
             if (user != null) {
-                try (Connection conn = DatabaseConnection.getConnection();
-                        PreparedStatement ps = conn.prepareStatement(
-                                "INSERT INTO cart_items (user_username, product_id, product_name, price, quantity, created_at) "
-                                        +
-                                        "VALUES (?,?,?,?,1,NOW())")) {
-                    ps.setString(1, user.getUsername());
-                    ps.setInt(2, id);
-                    ps.setString(3, name);
-                    ps.setDouble(4, price);
-                    ps.executeUpdate();
+                try (Connection conn = DatabaseConnection.getConnection()) {
+                    Integer userId = null;
+                    try (PreparedStatement psUser = conn.prepareStatement(
+                            "SELECT user_id FROM users WHERE username = ?")) {
+                        psUser.setString(1, user.getUsername());
+                        try (ResultSet rsUser = psUser.executeQuery()) {
+                            if (rsUser.next()) {
+                                userId = rsUser.getInt("user_id");
+                            }
+                        }
+                    }
+
+                    if (userId != null) {
+                        Integer cartId = null;
+                        try (PreparedStatement psCart = conn.prepareStatement(
+                                "SELECT cart_id FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")) {
+                            psCart.setInt(1, userId);
+                            try (ResultSet rsCart = psCart.executeQuery()) {
+                                if (rsCart.next()) {
+                                    cartId = rsCart.getInt("cart_id");
+                                }
+                            }
+                        }
+
+                        if (cartId == null) {
+                            try (PreparedStatement psNewCart = conn.prepareStatement(
+                                    "INSERT INTO carts (user_id, created_at) VALUES (?, NOW())",
+                                    Statement.RETURN_GENERATED_KEYS)) {
+                                psNewCart.setInt(1, userId);
+                                psNewCart.executeUpdate();
+                                try (ResultSet rsNew = psNewCart.getGeneratedKeys()) {
+                                    if (rsNew.next()) {
+                                        cartId = rsNew.getInt(1);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (cartId != null) {
+                            try (PreparedStatement psItem = conn.prepareStatement(
+                                    "INSERT INTO cart_items (cart_id, product_id, quantity, added_at) VALUES (?,?,1,NOW())")) {
+                                psItem.setInt(1, cartId);
+                                psItem.setInt(2, id);
+                                psItem.executeUpdate();
+                            }
+                        }
+                    }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

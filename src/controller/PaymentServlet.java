@@ -73,6 +73,9 @@ public class PaymentServlet extends HttpServlet {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            // Redirect to tracking page for this specific order
+            res.sendRedirect(req.getContextPath() + "/tracking?orderId=" + orderDbId);
+            return;
         } else {
             // Fallback: if no existing DB order id, insert as before
             try (Connection conn = DatabaseConnection.getConnection()) {
@@ -81,7 +84,9 @@ public class PaymentServlet extends HttpServlet {
                 String insertOrderSql = "INSERT INTO orders (user_username, total_amount, status, created_at) VALUES (?,?,?,NOW())";
                 int orderId = 0;
                 try (PreparedStatement ps = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
-                    String username = (order.getUser() != null) ? order.getUser().getUsername() : null;
+                    User user = (User) session.getAttribute("user");
+                    String username = (order.getUser() != null) ? order.getUser().getUsername()
+                            : (user != null ? user.getUsername() : null);
                     ps.setString(1, username);
                     ps.setDouble(2, order.calcTotal());
                     ps.setString(3, order.getStatus());
@@ -95,13 +100,26 @@ public class PaymentServlet extends HttpServlet {
 
                 if (orderId > 0 && order.getOrderDetails() != null) {
                     String insertItemSql = "INSERT INTO order_items (order_id, product_id, product_name, seller_username, quantity, price) VALUES (?,?,?,?,?,?)";
-                    try (PreparedStatement psItem = conn.prepareStatement(insertItemSql)) {
+                    String sellerLookupSql = "SELECT seller_username FROM products WHERE product_id = ?";
+                    try (PreparedStatement psItem = conn.prepareStatement(insertItemSql);
+                            PreparedStatement psSeller = conn.prepareStatement(sellerLookupSql)) {
                         for (OrderDetails od : order.getOrderDetails()) {
                             Product p = od.getProduct();
+
+                            String sellerUsername = null;
+                            if (p != null) {
+                                psSeller.setInt(1, p.getId());
+                                try (ResultSet rsSeller = psSeller.executeQuery()) {
+                                    if (rsSeller.next()) {
+                                        sellerUsername = rsSeller.getString("seller_username");
+                                    }
+                                }
+                            }
+
                             psItem.setInt(1, orderId);
                             psItem.setInt(2, p != null ? p.getId() : 0);
                             psItem.setString(3, p != null ? p.getName() : null);
-                            psItem.setString(4, p != null ? p.getSellerUsername() : null);
+                            psItem.setString(4, sellerUsername);
                             psItem.setInt(5, od.getQuantity());
                             psItem.setDouble(6, od.getPrice());
                             psItem.addBatch();
@@ -114,9 +132,26 @@ public class PaymentServlet extends HttpServlet {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            // Redirect to tracking page for the newly created order
+            // (fallback path when no orderDbId was present in the session)
+            // orderId is available only inside the try-with-resources block, so fetch it
+            // again.
+            try (Connection conn = DatabaseConnection.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT id FROM orders WHERE user_username = ? ORDER BY created_at DESC LIMIT 1")) {
+                User user = (User) session.getAttribute("user");
+                ps.setString(1, user != null ? user.getUsername() : null);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        int latestId = rs.getInt("id");
+                        res.sendRedirect(req.getContextPath() + "/tracking?orderId=" + latestId);
+                        return;
+                    }
+                }
+            } catch (SQLException ignored) {
+            }
         }
-
-        // Redirect to tracking
+        // Fallback redirect if we couldn't determine a specific order id
         res.sendRedirect(req.getContextPath() + "/tracking");
     }
 }

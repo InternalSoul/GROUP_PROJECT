@@ -1,17 +1,53 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="model.*" %>
+<%@ page import="model.*, java.sql.*" %>
 <%
     User user = (User) session.getAttribute("user");
     if (user == null) {
         response.sendRedirect("login");
         return;
     }
-    
-    String status = (String) request.getAttribute("status");
-    if (status == null) status = "Processing";
-    
-    Order order = (Order) session.getAttribute("order");
-    String orderId = "ORD" + System.currentTimeMillis();
+
+    // Determine which order to track: prefer explicit orderId param, fall back to
+    // the last order id stored in session.
+    String orderIdParam = request.getParameter("orderId");
+    Integer dbOrderId = null;
+    if (orderIdParam != null && !orderIdParam.isEmpty()) {
+        try { dbOrderId = Integer.parseInt(orderIdParam); } catch (NumberFormatException ignored) {}
+    }
+    if (dbOrderId == null) {
+        dbOrderId = (Integer) session.getAttribute("orderDbId");
+    }
+
+    String dbStatus = null;
+    if (dbOrderId != null) {
+        try (Connection conn = model.DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT status FROM orders WHERE id = ? AND user_username = ?")) {
+            ps.setInt(1, dbOrderId);
+            ps.setString(2, user.getUsername());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    dbStatus = rs.getString("status");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Map DB status (Pending, Completed, Cancelled, etc.) into a timeline
+    // status used by the UI (Processing, Shipped, Delivered).
+    String timelineStatus;
+    if (dbStatus == null) {
+        timelineStatus = "Processing";
+    } else if ("Completed".equalsIgnoreCase(dbStatus)) {
+        timelineStatus = "Delivered";
+    } else if ("Cancelled".equalsIgnoreCase(dbStatus)) {
+        timelineStatus = "Processing"; // order cancelled, but we keep timeline minimal
+    } else {
+        timelineStatus = "Processing";
+    }
+
+    String orderId = (dbOrderId != null) ? ("ORD" + dbOrderId) : ("ORD" + System.currentTimeMillis());
 %>
 <!DOCTYPE html>
 <html>
@@ -71,21 +107,21 @@
                         <p>Your order has been received</p>
                     </div>
                 </div>
-                <div class="status-item <%= "Processing".equals(status) || "Shipped".equals(status) || "Delivered".equals(status) ? "" : "inactive" %>">
+                <div class="status-item <%= "Processing".equals(timelineStatus) || "Shipped".equals(timelineStatus) || "Delivered".equals(timelineStatus) ? "" : "inactive" %>">
                     <div class="status-icon">📦</div>
                     <div class="status-details">
                         <h3>Processing</h3>
                         <p>We're preparing your items</p>
                     </div>
                 </div>
-                <div class="status-item <%= "Shipped".equals(status) || "Delivered".equals(status) ? "" : "inactive" %>">
+                <div class="status-item <%= "Shipped".equals(timelineStatus) || "Delivered".equals(timelineStatus) ? "" : "inactive" %>">
                     <div class="status-icon">🚚</div>
                     <div class="status-details">
                         <h3>Shipped</h3>
                         <p>Your order is on the way</p>
                     </div>
                 </div>
-                <div class="status-item <%= "Delivered".equals(status) ? "" : "inactive" %>">
+                <div class="status-item <%= "Delivered".equals(timelineStatus) ? "" : "inactive" %>">
                     <div class="status-icon">✓</div>
                     <div class="status-details">
                         <h3>Delivered</h3>

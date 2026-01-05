@@ -123,9 +123,9 @@
                         </div>
                         <div class="product-info">
                             <div class="product-name"><%= p.getName() %></div>
-                            <% if (p.getRating() > 0) { %>
+                            
                                 <div class="product-rating">★ <%= String.format("%.1f", p.getRating()) %></div>
-                            <% } %>
+                            
                             <div class="product-price">$<%= String.format("%.2f", p.getPrice()) %></div>
                             <form action="cart" method="post" onclick="event.stopPropagation();">
                                 <input type="hidden" name="action" value="add">

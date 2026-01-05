@@ -41,6 +41,7 @@ public class ProductDetailServlet extends HttpServlet {
         Product product = null;
         List<Review> reviews = new ArrayList<>();
         double averageRating = 0.0;
+        List<Product> variants = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Fetch the product record (follow actual DB schema)
@@ -65,6 +66,35 @@ public class ProductDetailServlet extends HttpServlet {
                         product.setMaterial(rs.getString("material") != null ? rs.getString("material") : "");
                         product.setRating(rs.getDouble("rating"));
                         product.setInStock(rs.getBoolean("in_stock"));
+                    }
+                }
+            }
+
+            // Fetch all variants for this product based on same seller and name so
+            // we can show size/color availability in the Add to Cart pop out.
+            if (product != null && product.getSellerUsername() != null
+                    && !product.getSellerUsername().isEmpty()) {
+                String variantSql = "SELECT product_id, name, price, image, seller_username, size, color, in_stock, stock_quantity "
+                        + "FROM products WHERE seller_username = ? AND name = ?";
+                try (PreparedStatement vstmt = conn.prepareStatement(variantSql)) {
+                    vstmt.setString(1, product.getSellerUsername());
+                    vstmt.setString(2, product.getName());
+                    try (ResultSet vrs = vstmt.executeQuery()) {
+                        while (vrs.next()) {
+                            Product v = new Product();
+                            v.setId(vrs.getInt("product_id"));
+                            v.setName(vrs.getString("name"));
+                            v.setPrice(vrs.getDouble("price"));
+                            v.setImage(vrs.getString("image") != null ? vrs.getString("image") : "");
+                            v.setSellerUsername(vrs.getString("seller_username") != null
+                                    ? vrs.getString("seller_username")
+                                    : "");
+                            v.setSize(vrs.getString("size") != null ? vrs.getString("size") : "");
+                            v.setColor(vrs.getString("color") != null ? vrs.getString("color") : "");
+                            v.setInStock(vrs.getBoolean("in_stock"));
+                            v.setStockQuantity(vrs.getInt("stock_quantity"));
+                            variants.add(v);
+                        }
                     }
                 }
             }
@@ -120,6 +150,7 @@ public class ProductDetailServlet extends HttpServlet {
         req.setAttribute("averageRating", averageRating);
         req.setAttribute("reviewCount", reviews.size());
         req.setAttribute("description", description);
+        req.setAttribute("variants", variants);
 
         req.getRequestDispatcher("/product-details.jsp").forward(req, res);
     }

@@ -11,9 +11,25 @@
         cart = new ArrayList<>();
         session.setAttribute("cart", cart);
     }
-    double total = 0;
+    // Group cart by product so multiple units of the same
+    // product appear as a single line with a quantity.
+    Map<Integer, Product> productById = new LinkedHashMap<>();
+    Map<Integer, Integer> quantityById = new LinkedHashMap<>();
     for (Product p : cart) {
-        total += p.getPrice();
+        int id = p.getId();
+        if (!productById.containsKey(id)) {
+            productById.put(id, p);
+            quantityById.put(id, 0);
+        }
+        quantityById.put(id, quantityById.get(id) + 1);
+    }
+
+    double total = 0;
+    for (Map.Entry<Integer, Product> entry : productById.entrySet()) {
+        int id = entry.getKey();
+        Product p = entry.getValue();
+        int qty = quantityById.get(id);
+        total += p.getPrice() * qty;
     }
 %>
 <!DOCTYPE html>
@@ -49,6 +65,7 @@
         .item-details { flex: 1; }
         .item-name { font-size: 1em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
         .item-price { color: #1a1a1a; font-size: 1.1em; }
+        .item-qty { color: #666; font-size: 0.9em; margin-top: 4px; }
         .remove-btn { padding: 12px 24px; background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.8em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
         .remove-btn:hover { background: #1a1a1a; color: #fff; }
         .cart-summary { background: #fff; border: 1px solid #eee; padding: 40px; margin-top: 30px; }
@@ -75,22 +92,25 @@
             </div>
         <% } else { %>
             <div class="cart-items">
-                <% for (int i = 0; i < cart.size(); i++) { Product p = cart.get(i); %>
+                <% for (Map.Entry<Integer, Product> entry : productById.entrySet()) { Product p = entry.getValue(); int pid = entry.getKey(); int qty = quantityById.get(pid); %>
                     <div class="cart-item">
                         <div class="item-image">
                             <% if (p.getImage() != null && !p.getImage().isEmpty()) { %>
-                                <img src="<%= p.getImage() %>" alt="<%= p.getName() %>">
+                                <a href="product?id=<%= p.getId() %>">
+                                    <img src="<%= p.getImage() %>" alt="<%= p.getName() %>">
+                                </a>
                             <% } else { %>
                                 ◇
                             <% } %>
                         </div>
                         <div class="item-details">
                             <div class="item-name"><%= p.getName() %></div>
-                            <div class="item-price">$<%= String.format("%.2f", p.getPrice()) %></div>
+                            <div class="item-price">$<%= String.format("%.2f", p.getPrice()) %> each</div>
+                            <div class="item-qty">Qty: <%= qty %></div>
                         </div>
                         <form action="cart" method="post">
                             <input type="hidden" name="action" value="remove">
-                            <input type="hidden" name="index" value="<%= i %>">
+                            <input type="hidden" name="productId" value="<%= pid %>">
                             <button type="submit" class="remove-btn">Remove</button>
                         </form>
                     </div>
