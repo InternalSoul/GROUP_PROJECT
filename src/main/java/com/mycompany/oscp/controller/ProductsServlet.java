@@ -89,9 +89,9 @@ public class ProductsServlet extends HttpServlet {
             // Build WHERE clause
             StringBuilder whereClause = new StringBuilder("WHERE 1=1");
             List<Object> params = new ArrayList<>();
-
-            // Filter out products with no stock
-            whereClause.append(" AND in_stock = TRUE AND stock_quantity > 0");
+            
+            // Only show products with stock
+            whereClause.append(" AND stock_quantity > 0 AND in_stock = true");
 
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                 whereClause.append(" AND (LOWER(name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?))");
@@ -150,7 +150,7 @@ public class ProductsServlet extends HttpServlet {
                 orderByClause = " ORDER BY name ASC";
             }
 
-            String sql = "SELECT product_id, name, price, image, seller_username, category, product_type, size, color, brand, material, rating, in_stock, stock_quantity FROM products "
+            String sql = "SELECT product_id, name, price, image, seller_username, category, product_type, size, color, brand, material, rating, in_stock FROM products "
                     + whereClause.toString() + orderByClause;
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
