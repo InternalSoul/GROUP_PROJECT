@@ -32,8 +32,13 @@
         h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; }
         .success-message { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; }
         .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; }
-        .profile-card { background: #fff; border: 1px solid #eee; padding: 40px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .section { margin-bottom: 40px; }
+        .profile-card { background: #fff; border: 1px solid #eee; padding: 40px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); animation: slideInUp 0.6s ease-out; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .section { margin-bottom: 40px; animation: fadeIn 0.8s ease-out backwards; }
+        .section:nth-child(1) { animation-delay: 0.2s; }
+        .section:nth-child(2) { animation-delay: 0.4s; }
+        .section:nth-child(3) { animation-delay: 0.6s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         .section:last-child { margin-bottom: 0; }
         .section h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; font-weight: 400; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
         .form-row { display: grid; gap: 20px; margin-bottom: 20px; }
@@ -41,7 +46,7 @@
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.85em; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .form-group input, .form-group textarea { padding: 14px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; border-radius: 6px; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,26,26,0.1); }
         .form-group input:read-only { background: #f5f5f5; color: #888; cursor: not-allowed; }
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-group small { color: #888; font-size: 0.85em; margin-top: 5px; }

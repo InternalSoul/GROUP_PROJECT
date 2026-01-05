@@ -62,11 +62,21 @@
         .filters-panel select:focus { outline: none; border-color: #1a1a1a; }
         .container { max-width: 1400px; margin: 0 auto; padding: 50px 60px; }
         .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
-        .product-card { background: #fff; border: 1px solid #eee; transition: border-color 0.3s; cursor: pointer; }
-        .product-card:hover { border-color: #1a1a1a; }
+        .product-card { background: #fff; border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; opacity: 0; animation: fadeInUp 0.6s ease-out forwards; border-radius: 8px; overflow: hidden; }
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.15s; }
+        .product-card:nth-child(3) { animation-delay: 0.2s; }
+        .product-card:nth-child(4) { animation-delay: 0.25s; }
+        .product-card:nth-child(5) { animation-delay: 0.3s; }
+        .product-card:nth-child(6) { animation-delay: 0.35s; }
+        .product-card:nth-child(7) { animation-delay: 0.4s; }
+        .product-card:nth-child(8) { animation-delay: 0.45s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .product-card:hover { border-color: #1a1a1a; transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
         .image-link { display: block; color: inherit; }
         .product-image { height: 300px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; cursor: pointer; }
-        .product-image img { max-width: 100%; max-height: 100%; object-fit: cover; }
+        .product-image img { max-width: 100%; max-height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover .product-image img { transform: scale(1.1); }
         .product-placeholder { font-size: 4em; color: #ddd; }
         .product-badge { position: absolute; top: 10px; right: 10px; background: #1a1a1a; color: #fff; padding: 4px 8px; font-size: 0.65em; font-weight: 600; text-transform: uppercase; }
         .product-info { padding: 25px; text-align: center; }
@@ -79,8 +89,11 @@
         .product-price { font-size: 1em; color: #1a1a1a; margin-bottom: 20px; }
         .details-link { display: inline-block; margin-bottom: 12px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a; text-decoration: none; border: 1px solid #1a1a1a; padding: 10px 14px; transition: background 0.3s, color 0.3s; }
         .details-link:hover { background: #1a1a1a; color: #fff; }
-        .add-to-cart-btn { width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
-        .add-to-cart-btn:hover { background: #333; }
+        .add-to-cart-btn { width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .add-to-cart-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.3); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .add-to-cart-btn:hover { background: #333; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .add-to-cart-btn:hover::before { width: 300px; height: 300px; }
+        .add-to-cart-btn:active { transform: translateY(0); }
         .no-products { text-align: center; padding: 80px; color: #888; }
         .no-products h2 { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 400; margin-bottom: 15px; color: #1a1a1a; }
         .error-banner { margin: 20px 60px 0; padding: 12px 16px; border: 1px solid #ffcccc; background: #fff5f5; color: #b00020; font-size: 0.9em; border-radius: 8px; }

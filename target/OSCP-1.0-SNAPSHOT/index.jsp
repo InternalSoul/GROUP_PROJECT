@@ -19,19 +19,29 @@
         .navbar .nav-links { display: flex; gap: 35px; align-items: center; }
         .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.9em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
         .navbar .nav-links a:hover { opacity: 0.6; }
-        .hero { height: 80vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600') center/cover; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 4em; font-weight: 400; letter-spacing: 8px; margin-bottom: 20px; }
-        .hero p { font-size: 1.1em; letter-spacing: 3px; margin-bottom: 40px; font-weight: 300; }
-        .hero-buttons { display: flex; gap: 20px; }
-        .btn { display: inline-block; padding: 16px 45px; text-decoration: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s ease; }
+        .hero { height: 80vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600') center/cover; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; animation: fadeIn 1s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 4em; font-weight: 400; letter-spacing: 8px; margin-bottom: 20px; opacity: 0; animation: slideDown 0.8s ease-out 0.3s forwards; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        .hero p { font-size: 1.1em; letter-spacing: 3px; margin-bottom: 40px; font-weight: 300; opacity: 0; animation: slideDown 0.8s ease-out 0.6s forwards; }
+        .hero-buttons { display: flex; gap: 20px; opacity: 0; animation: slideUp 0.8s ease-out 0.9s forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .btn { display: inline-block; padding: 16px 45px; text-decoration: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(0,0,0,0.1); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .btn:hover::before { width: 400px; height: 400px; }
         .btn-primary { background: #fff; color: #1a1a1a; border: 2px solid #fff; }
-        .btn-primary:hover { background: transparent; color: #fff; }
+        .btn-primary:hover { background: transparent; color: #fff; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255,255,255,0.3); }
         .btn-secondary { background: transparent; color: #fff; border: 2px solid #fff; }
-        .btn-secondary:hover { background: #fff; color: #1a1a1a; }
+        .btn-secondary:hover { background: #fff; color: #1a1a1a; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255,255,255,0.3); }
         .features-section { padding: 80px 60px; background: #fafafa; }
         .features-section h2 { text-align: center; font-family: 'Playfair Display', serif; font-size: 2.2em; font-weight: 400; margin-bottom: 50px; letter-spacing: 2px; }
         .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1000px; margin: 0 auto; }
-        .feature { text-align: center; padding: 30px; }
+        .feature { text-align: center; padding: 30px; opacity: 0; animation: fadeInScale 0.6s ease-out forwards; transition: transform 0.3s ease; }
+        .feature:nth-child(1) { animation-delay: 0.2s; }
+        .feature:nth-child(2) { animation-delay: 0.4s; }
+        .feature:nth-child(3) { animation-delay: 0.6s; }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .feature:hover { transform: translateY(-8px); }
         .feature-icon { font-size: 2.5em; margin-bottom: 20px; }
         .feature h3 { font-size: 1em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
         .feature-text { color: #666; font-size: 0.9em; line-height: 1.6; }

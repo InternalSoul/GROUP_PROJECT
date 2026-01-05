@@ -37,9 +37,17 @@
         .container { max-width: 1100px; margin: 0 auto; padding: 50px 30px 70px; }
         h1 { font-family: 'Playfair Display', serif; font-size: 2.2em; font-weight: 400; letter-spacing: 2px; margin-bottom: 30px; }
         .section-title { font-size: 1.1em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin: 30px 0 15px; }
-        .orders-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #eee; }
+        .orders-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
         .orders-table th { background: #f5f5f5; padding: 14px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #eee; }
         .orders-table td { padding: 14px; border-bottom: 1px solid #eee; font-size: 0.9em; vertical-align: top; }
+        .orders-table tbody tr { opacity: 0; animation: fadeInRow 0.5s ease-out forwards; transition: background 0.2s ease; }
+        .orders-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+        .orders-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+        .orders-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+        .orders-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+        .orders-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .orders-table tbody tr:hover { background: #fafafa; }
         .orders-table tr:last-child td { border-bottom: none; }
         .order-thumb { width: 60px; height: 60px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: 1.4em; color: #ddd; border-radius: 4px; }
         .order-thumb img { max-width: 100%; max-height: 100%; object-fit: cover; }
@@ -50,10 +58,10 @@
         .status-completed { background: #ecfdf3; color: #166534; border: 1px solid #bbf7d0; }
         .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .empty { padding: 30px; text-align: center; background: #fff; border: 1px solid #eee; color: #888; font-size: 0.95em; }
-        .track-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #1a1a1a; background: #fff; color: #1a1a1a; text-decoration: none; transition: background 0.2s, color 0.2s; }
-        .track-btn:hover { background: #1a1a1a; color: #fff; }
-        .review-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #166534; background: #fff; color: #166534; text-decoration: none; transition: background 0.2s, color 0.2s; margin-top: 6px; }
-        .review-btn:hover { background: #166534; color: #fff; }
+        .track-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #1a1a1a; background: #fff; color: #1a1a1a; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .track-btn:hover { background: #1a1a1a; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .review-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #166534; background: #fff; color: #166534; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-top: 6px; }
+        .review-btn:hover { background: #166534; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2); }
         .action-buttons { display: flex; flex-direction: column; gap: 6px; }
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 60px; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }

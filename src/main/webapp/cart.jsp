@@ -57,8 +57,15 @@
         .cart-empty p { color: #888; margin-bottom: 30px; }
         .cart-empty a { display: inline-block; padding: 16px 40px; background: #1a1a1a; color: #fff; text-decoration: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; transition: background 0.3s; }
         .cart-empty a:hover { background: #333; }
-        .cart-items { background: #fff; border: 1px solid #eee; }
-        .cart-item { display: flex; align-items: center; padding: 30px; border-bottom: 1px solid #eee; }
+        .cart-items { background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        .cart-item { display: flex; align-items: center; padding: 30px; border-bottom: 1px solid #eee; opacity: 0; animation: slideInRight 0.5s ease-out forwards; transition: all 0.3s ease; }
+        .cart-item:nth-child(1) { animation-delay: 0.1s; }
+        .cart-item:nth-child(2) { animation-delay: 0.2s; }
+        .cart-item:nth-child(3) { animation-delay: 0.3s; }
+        .cart-item:nth-child(4) { animation-delay: 0.4s; }
+        .cart-item:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        .cart-item:hover { background: #f8fafc; }
         .cart-item:last-child { border-bottom: none; }
         .item-image { width: 100px; height: 100px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; margin-right: 30px; font-size: 2em; color: #ddd; overflow: hidden; }
         .item-image img { max-width: 100%; max-height: 100%; object-fit: cover; }
@@ -71,8 +78,11 @@
         .cart-summary { background: #fff; border: 1px solid #eee; padding: 40px; margin-top: 30px; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1em; }
         .summary-row.total { font-size: 1.3em; font-weight: 600; padding-top: 20px; border-top: 1px solid #eee; margin-top: 20px; }
-        .checkout-btn { display: block; width: 100%; padding: 18px; background: #1a1a1a; color: #fff; text-align: center; text-decoration: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-top: 25px; transition: background 0.3s; border: none; cursor: pointer; }
-        .checkout-btn:hover { background: #333; }
+        .checkout-btn { display: block; width: 100%; padding: 18px; background: #1a1a1a; color: #fff; text-align: center; text-decoration: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-top: 25px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; cursor: pointer; position: relative; overflow: hidden; }
+        .checkout-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .checkout-btn:hover { background: #333; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .checkout-btn:hover::before { width: 400px; height: 400px; }
+        .checkout-btn:active { transform: translateY(0); }
         .continue-shopping { display: block; text-align: center; margin-top: 20px; color: #888; text-decoration: none; font-size: 0.9em; }
         .continue-shopping:hover { color: #1a1a1a; }
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }

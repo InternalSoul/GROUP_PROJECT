@@ -80,11 +80,16 @@
         .page { max-width: 1200px; margin: 40px auto 60px; padding: 0 40px; }
         .breadcrumbs { font-size: 0.85em; color: #475569; margin-bottom: 20px; }
         .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: start; }
-        .media { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05); }
+        .media { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05); animation: fadeInLeft 0.8s ease-out; }
+        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
         .hero-img { width: 100%; aspect-ratio: 4 / 5; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+        .hero-img { transition: transform 0.3s ease; }
+        .hero-img:hover { transform: scale(1.02); }
+        .hero-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .hero-img:hover img { transform: scale(1.05); }
         .hero-placeholder { font-size: 4em; color: #cbd5e1; }
-        .detail-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05); }
+        .detail-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05); animation: fadeInRight 0.8s ease-out; }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
         .title { font-family: 'Cormorant Garamond', serif; font-size: 2.4em; letter-spacing: 1px; margin-bottom: 8px; }
         .meta { color: #475569; font-size: 0.95em; margin-bottom: 12px; }
         .seller-row { display: inline-flex; align-items: center; gap: 10px; }

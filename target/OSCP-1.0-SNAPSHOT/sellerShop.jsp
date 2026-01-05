@@ -58,16 +58,24 @@
         .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
         .add-btn:hover { background: #333; }
         .products-section { margin-top: 0; }
-        .products-table { background: #fff; border: 1px solid #eee; width: 100%; border-collapse: collapse; }
+        .products-table { background: #fff; border: 1px solid #eee; width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
         .products-table th { background: #f5f5f5; padding: 18px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #eee; }
         .products-table td { padding: 18px; border-bottom: 1px solid #eee; }
+        .products-table tbody tr { opacity: 0; animation: fadeInRow 0.5s ease-out forwards; transition: background 0.2s ease; }
+        .products-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+        .products-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+        .products-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+        .products-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+        .products-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .products-table tbody tr:hover { background: #fafafa; }
         .products-table tr:last-child td { border-bottom: none; }
         .product-image-cell { width: 80px; height: 80px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 1.5em; color: #ddd; overflow: hidden; }
         .product-image-cell img { max-width: 100%; max-height: 100%; object-fit: cover; }
-        .edit-btn { padding: 10px 20px; background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; }
-        .edit-btn:hover { background: #1a1a1a; color: #fff; }
-        .delete-btn { padding: 10px 20px; background: transparent; color: #d32f2f; border: 1px solid #d32f2f; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
-        .delete-btn:hover { background: #d32f2f; color: #fff; }
+        .edit-btn { padding: 10px 20px; background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; display: inline-block; }
+        .edit-btn:hover { background: #1a1a1a; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .delete-btn { padding: 10px 20px; background: transparent; color: #d32f2f; border: 1px solid #d32f2f; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .delete-btn:hover { background: #d32f2f; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2); }
         .no-products { text-align: center; padding: 60px; color: #888; background: #fff; border: 1px solid #eee; }
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }

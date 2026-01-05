@@ -13,15 +13,19 @@
         .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
         .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.9em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-left: 30px; }
         .main-content { flex: 1; display: flex; justify-content: center; align-items: center; padding: 60px 20px; }
-        .login-container { background: #fff; padding: 60px; width: 100%; max-width: 450px; border: 1px solid #e5e5e5; }
+        .login-container { background: #fff; padding: 60px; width: 100%; max-width: 450px; border: 1px solid #e5e5e5; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); opacity: 0; animation: slideInUp 0.6s ease-out forwards; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         h2 { font-family: 'Playfair Display', serif; font-size: 2em; font-weight: 400; text-align: center; margin-bottom: 10px; letter-spacing: 2px; }
         .subtitle { text-align: center; color: #888; font-size: 0.9em; margin-bottom: 40px; }
         .form-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; color: #1a1a1a; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; transition: border-color 0.3s; }
-        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: #1a1a1a; }
-        .btn { width: 100%; padding: 18px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
-        .btn:hover { background: #333; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: #1a1a1a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26, 26, 26, 0.1); }
+        .btn { width: 100%; padding: 18px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .btn:hover { background: #333; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .btn:hover::before { width: 400px; height: 400px; }
+        .btn:active { transform: translateY(0); }
         .error { background: #fff5f5; color: #c53030; padding: 15px; margin-bottom: 25px; text-align: center; font-size: 0.9em; border: 1px solid #fed7d7; }
         .success { background: #f0fff4; color: #276749; padding: 15px; margin-bottom: 25px; text-align: center; font-size: 0.9em; border: 1px solid #c6f6d5; }
         .links { text-align: center; margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; }
