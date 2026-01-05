@@ -6,6 +6,13 @@
         response.sendRedirect("login");
         return;
     }
+    
+    // Check for error message from cart operation
+    String errorMsg = (String) session.getAttribute("error");
+    if (errorMsg != null) {
+        session.removeAttribute("error");
+    }
+    
     Product product = (Product) request.getAttribute("product");
     List<Review> reviews = (List<Review>) request.getAttribute("reviews");
     Double averageRating = (Double) request.getAttribute("averageRating");
@@ -150,6 +157,13 @@
 
     <div class="page">
         <div class="breadcrumbs"><a href="products" style="color:#0f172a; text-decoration:none;">Shop</a> / <span style="opacity:0.65;"><%= product.getName() %></span></div>
+        
+        <% if (errorMsg != null) { %>
+        <div style="background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:14px 18px; border-radius:10px; margin-bottom:20px; font-size:0.95em;">
+            <%= errorMsg %>
+        </div>
+        <% } %>
+        
         <div class="layout">
             <div class="media">
                 <div class="hero-img">

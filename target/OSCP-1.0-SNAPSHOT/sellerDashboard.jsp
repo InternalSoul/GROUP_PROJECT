@@ -7,73 +7,26 @@
         return;
     }
 
-    int productCount = 0;
-    double totalValue = 0.0;
-    List<Product> latestProducts = new ArrayList<>();
-    List<Map<String, Object>> recentOrders = new ArrayList<>();
-    int orderCount = 0;
-
-    try (Connection conn = DatabaseConnection.getConnection()) {
-        String countSql = "SELECT COUNT(*) AS cnt, COALESCE(SUM(price),0) AS total_val FROM products WHERE seller_username = ?";
-        try (PreparedStatement ps = conn.prepareStatement(countSql)) {
-            ps.setString(1, user.getUsername());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    productCount = rs.getInt("cnt");
-                    totalValue = rs.getDouble("total_val");
-                }
-            }
-        }
-
-        // Get order count for this seller
-        String orderCountSql = "SELECT COUNT(DISTINCT order_id) as cnt FROM order_items WHERE seller_username = ?";
-        try (PreparedStatement ps = conn.prepareStatement(orderCountSql)) {
-            ps.setString(1, user.getUsername());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    orderCount = rs.getInt("cnt");
-                }
-            }
-        }
-
-        // Get recent orders
-        String ordersSql = "SELECT DISTINCT o.order_id, o.user_username, o.total_amount, o.status, o.created_at " +
-                          "FROM orders o " +
-                          "JOIN order_items oi ON o.order_id = oi.order_id " +
-                          "WHERE oi.seller_username = ? " +
-                          "ORDER BY o.created_at DESC LIMIT 5";
-        try (PreparedStatement ps = conn.prepareStatement(ordersSql)) {
-            ps.setString(1, user.getUsername());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Map<String, Object> order = new HashMap<>();
-                    order.put("orderId", rs.getInt("order_id"));
-                    order.put("customerUsername", rs.getString("user_username"));
-                    order.put("totalAmount", rs.getDouble("total_amount"));
-                    order.put("status", rs.getString("status"));
-                    order.put("createdAt", rs.getTimestamp("created_at"));
-                    recentOrders.add(order);
-                }
-            }
-        }
-
-        String latestSql = "SELECT product_id, name, price, image FROM products WHERE seller_username = ? ORDER BY product_id DESC LIMIT 5";
-        try (PreparedStatement ps = conn.prepareStatement(latestSql)) {
-            ps.setString(1, user.getUsername());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Product p = new Product();
-                    p.setId(rs.getInt("product_id"));
-                    p.setName(rs.getString("name"));
-                    p.setPrice(rs.getDouble("price"));
-                    p.setImage(rs.getString("image") != null ? rs.getString("image") : "");
-                    latestProducts.add(p);
-                }
-            }
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
+    // Get attributes from servlet
+    Integer productCount = (Integer) request.getAttribute("productCount");
+    Double totalValue = (Double) request.getAttribute("totalValue");
+    Double totalRevenue = (Double) request.getAttribute("totalRevenue");
+    Integer orderCount = (Integer) request.getAttribute("orderCount");
+    Integer pendingOrders = (Integer) request.getAttribute("pendingOrders");
+    
+    @SuppressWarnings("unchecked")
+    List<Product> latestProducts = (List<Product>) request.getAttribute("latestProducts");
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> recentOrders = (List<Map<String, Object>>) request.getAttribute("recentOrders");
+    
+    // Set defaults if attributes are null (direct JSP access)
+    if (productCount == null) productCount = 0;
+    if (totalValue == null) totalValue = 0.0;
+    if (totalRevenue == null) totalRevenue = 0.0;
+    if (orderCount == null) orderCount = 0;
+    if (pendingOrders == null) pendingOrders = 0;
+    if (latestProducts == null) latestProducts = new ArrayList<>();
+    if (recentOrders == null) recentOrders = new ArrayList<>();
 %>
 <!DOCTYPE html>
 <html>
@@ -111,13 +64,37 @@
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
         .footer p { color: #666; font-size: 0.8em; }
+        .success-message { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; padding: 12px 16px; border-radius: 8px; margin-top: 20px; }
+        .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-top: 20px; }
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 30px; flex-wrap: wrap; }
+            .navbar .nav-links { gap: 15px; flex-wrap: wrap; }
+            .container { padding: 40px 20px; }
+            h1 { font-size: 2em; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .table { font-size: 0.9em; }
+            .table th, .table td { padding: 8px; }
+            .actions { flex-direction: column; }
+            .actions .btn { width: 100%; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .navbar { padding: 12px 15px; }
+            .navbar .logo { font-size: 1.4em; }
+            .navbar .nav-links { font-size: 0.75em; gap: 10px; }
+            .container { padding: 30px 15px; }
+            h1 { font-size: 1.7em; }
+            .table { display: block; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <a href="index.jsp" class="logo">CLOTHING STORE</a>
         <div class="nav-links">
-            <a href="sellerDashboard.jsp">Dashboard</a>
+            <a href="sellerDashboard">Dashboard</a>
             <a href="sellerShop.jsp">My Shop</a>
             <a href="products">View Store</a>
             <a href="logout">Logout</a>
@@ -136,12 +113,17 @@
             <div class="stat-card">
                 <div class="stat-label">Catalog Value</div>
                 <div class="stat-value">$<%= String.format("%.2f", totalValue) %></div>
-                <div class="stat-sub">Sum of your product prices</div>
+                <div class="stat-sub">Sum of product prices</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Orders</div>
-                <div class="stat-value"><%= orderCount %></div>
-                <div class="stat-sub">Total orders received</div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value">$<%= String.format("%.2f", totalRevenue) %></div>
+                <div class="stat-sub">From <%= orderCount %> orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Orders</div>
+                <div class="stat-value"><%= pendingOrders %></div>
+                <div class="stat-sub">Awaiting processing</div>
             </div>
         </div>
 
@@ -150,41 +132,56 @@
             String errorMsg = (String) request.getAttribute("error");
         %>
         <% if (successMsg != null) { %>
-            <div style="margin-top: 20px; padding: 12px 16px; background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; border-radius: 8px;"><%= successMsg %></div>
+            <div class="success-message"><%= successMsg %></div>
         <% } %>
         <% if (errorMsg != null) { %>
-            <div style="margin-top: 20px; padding: 12px 16px; background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; border-radius: 8px;"><%= errorMsg %></div>
+            <div class="error-message"><%= errorMsg %></div>
         <% } %>
 
         <div class="section">
             <h2>Recent Orders</h2>
-            <p>Orders containing your products.</p>
+            <p>Orders containing your products. Amount shown is your portion of each order.</p>
             <% if (recentOrders.isEmpty()) { %>
                 <p style="color:#888; margin-top: 12px;">No orders yet.</p>
             <% } else { %>
                 <table class="table">
                     <thead>
-                        <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                        <tr><th>Order ID</th><th>Customer</th><th>Your Amount</th><th>Status</th><th>Date</th><th>Action</th></tr>
                     </thead>
                     <tbody>
                         <% for (Map<String, Object> order : recentOrders) { %>
                             <tr>
                                 <td>ORD<%= order.get("orderId") %></td>
                                 <td><%= order.get("customerUsername") %></td>
-                                <td>$<%= String.format("%.2f", (Double)order.get("totalAmount")) %></td>
-                                <td><%= order.get("status") %></td>
+                                <td>$<%= String.format("%.2f", (Double)order.get("sellerTotal")) %></td>
+                                <td>
+                                    <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85em; <%
+                                        String status = (String)order.get("status");
+                                        if ("Delivered".equals(status)) {
+                                            out.print("background: #d1fae5; color: #065f46;");
+                                        } else if ("Shipped".equals(status)) {
+                                            out.print("background: #dbeafe; color: #1e40af;");
+                                        } else if ("Processing".equals(status)) {
+                                            out.print("background: #fef3c7; color: #92400e;");
+                                        } else if ("Cancelled".equals(status)) {
+                                            out.print("background: #fee2e2; color: #991b1b;");
+                                        } else {
+                                            out.print("background: #f3f4f6; color: #374151;");
+                                        }
+                                    %>"><%= status %></span>
+                                </td>
                                 <td><%= order.get("createdAt") != null ? ((java.sql.Timestamp)order.get("createdAt")).toLocalDateTime().toLocalDate().toString() : "N/A" %></td>
                                 <td>
                                     <form action="updateOrderStatus" method="post" style="display: inline-flex; gap: 8px; align-items: center;">
                                         <input type="hidden" name="orderId" value="<%= order.get("orderId") %>">
-                                        <select name="status" style="padding: 6px 10px; border: 1px solid #ddd; font-size: 0.85em;">
+                                        <select name="status" style="padding: 6px 10px; border: 1px solid #ddd; font-size: 0.85em; border-radius: 4px;">
                                             <option value="Pending" <%= "Pending".equals(order.get("status")) ? "selected" : "" %>>Pending</option>
                                             <option value="Processing" <%= "Processing".equals(order.get("status")) ? "selected" : "" %>>Processing</option>
                                             <option value="Shipped" <%= "Shipped".equals(order.get("status")) ? "selected" : "" %>>Shipped</option>
                                             <option value="Delivered" <%= "Delivered".equals(order.get("status")) ? "selected" : "" %>>Delivered</option>
                                             <option value="Cancelled" <%= "Cancelled".equals(order.get("status")) ? "selected" : "" %>>Cancelled</option>
                                         </select>
-                                        <button type="submit" style="padding: 6px 12px; background: #1a1a1a; color: #fff; border: none; cursor: pointer; font-size: 0.85em;">Update</button>
+                                        <button type="submit" style="padding: 6px 12px; background: #1a1a1a; color: #fff; border: none; cursor: pointer; font-size: 0.85em; border-radius: 4px; transition: background 0.2s;">Update</button>
                                     </form>
                                 </td>
                             </tr>
@@ -202,19 +199,32 @@
             <% } else { %>
                 <table class="table">
                     <thead>
-                        <tr><th>Item</th><th>Price</th><th></th></tr>
+                        <tr><th>Item</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                         <% for (Product p : latestProducts) { %>
                             <tr>
-                                <td>
+                                <td style="display: flex; align-items: center; gap: 10px;">
                                     <% if (p.getImage() != null && !p.getImage().isEmpty()) { %>
                                         <img src="<%= p.getImage() %>" alt="<%= p.getName() %>">
+                                    <% } else { %>
+                                        <div style="width: 50px; height: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #ccc;">◇</div>
                                     <% } %>
-                                    <span style="margin-left:10px;"><%= p.getName() %></span>
+                                    <span><%= p.getName() %></span>
                                 </td>
                                 <td>$<%= String.format("%.2f", p.getPrice()) %></td>
-                                <td><a href="product?id=<%= p.getId() %>" style="text-decoration:none; color:#1a1a1a;">View</a></td>
+                                <td><%= p.getStockQuantity() %> units</td>
+                                <td>
+                                    <% if (p.isInStock() && p.getStockQuantity() > 0) { %>
+                                        <span style="color: #10b981; font-weight: 500;">✓ In Stock</span>
+                                    <% } else { %>
+                                        <span style="color: #ef4444; font-weight: 500;">✗ Out of Stock</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <a href="product?id=<%= p.getId() %>" style="text-decoration:none; color:#1a1a1a; margin-right: 12px;">View</a>
+                                    <a href="sellerShop.jsp" style="text-decoration:none; color:#666;">Edit</a>
+                                </td>
                             </tr>
                         <% } %>
                     </tbody>

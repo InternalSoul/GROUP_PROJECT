@@ -2,6 +2,7 @@ com\mycompany\oscp\model\DatabaseConnection.class
 com\mycompany\oscp\controller\ReviewServlet.class
 com\mycompany\oscp\controller\LoginServlet.class
 com\mycompany\oscp\controller\OrderHistoryServlet.class
+com\mycompany\oscp\controller\SellerDashboardServlet.class
 com\mycompany\oscp\controller\LogoutServlet.class
 com\mycompany\oscp\controller\UpdateOrderStatusServlet.class
 com\mycompany\oscp\model\Review.class

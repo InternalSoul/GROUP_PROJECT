@@ -90,6 +90,9 @@ public class ProductsServlet extends HttpServlet {
             StringBuilder whereClause = new StringBuilder("WHERE 1=1");
             List<Object> params = new ArrayList<>();
 
+            // Filter out products with no stock
+            whereClause.append(" AND in_stock = TRUE AND stock_quantity > 0");
+
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                 whereClause.append(" AND (LOWER(name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?))");
                 params.add("%" + searchQuery + "%");
@@ -147,7 +150,7 @@ public class ProductsServlet extends HttpServlet {
                 orderByClause = " ORDER BY name ASC";
             }
 
-            String sql = "SELECT product_id, name, price, image, seller_username, category, product_type, size, color, brand, material, rating, in_stock FROM products "
+            String sql = "SELECT product_id, name, price, image, seller_username, category, product_type, size, color, brand, material, rating, in_stock, stock_quantity FROM products "
                     + whereClause.toString() + orderByClause;
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -244,6 +247,48 @@ public class ProductsServlet extends HttpServlet {
                     stmt.setString(7, size != null ? size : "");
                     stmt.setString(8, color != null ? color : "");
                     stmt.setString(9, brand != null ? brand : "");
+                    stmt.executeUpdate();
+                }
+            } else if ("update".equalsIgnoreCase(action)) {
+                String idParam = req.getParameter("id");
+                String name = req.getParameter("name");
+                String priceStr = req.getParameter("price");
+                String image = req.getParameter("image");
+                String category = req.getParameter("category");
+                String productType = req.getParameter("productType");
+                String size = req.getParameter("size");
+                String color = req.getParameter("color");
+                String brand = req.getParameter("brand");
+                String material = req.getParameter("material");
+                String stockStr = req.getParameter("stock");
+                String description = req.getParameter("description");
+
+                int productId = 0;
+                double price = 0.0;
+                int stock = 0;
+                
+                try {
+                    productId = Integer.parseInt(idParam);
+                    price = Double.parseDouble(priceStr);
+                    stock = Integer.parseInt(stockStr);
+                } catch (NumberFormatException ignored) {
+                }
+
+                String updateSql = "UPDATE products SET name=?, price=?, image=?, category=?, product_type=?, size=?, color=?, brand=?, material=?, stock_quantity=?, description=? WHERE product_id=? AND seller_username=?";
+                try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
+                    stmt.setString(1, name != null ? name : "");
+                    stmt.setDouble(2, price);
+                    stmt.setString(3, image != null ? image : "");
+                    stmt.setString(4, category != null ? category : "");
+                    stmt.setString(5, productType != null ? productType : "");
+                    stmt.setString(6, size != null ? size : "");
+                    stmt.setString(7, color != null ? color : "");
+                    stmt.setString(8, brand != null ? brand : "");
+                    stmt.setString(9, material != null ? material : "");
+                    stmt.setInt(10, stock);
+                    stmt.setString(11, description != null ? description : "");
+                    stmt.setInt(12, productId);
+                    stmt.setString(13, user.getUsername());
                     stmt.executeUpdate();
                 }
             } else if ("delete".equalsIgnoreCase(action)) {

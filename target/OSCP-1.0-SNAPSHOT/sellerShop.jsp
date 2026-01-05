@@ -9,7 +9,7 @@
 
     // Fetch only the current seller's products
     List<Product> products = new ArrayList<>();
-    String productSql = "SELECT product_id, name, price, image, product_type, size, color, brand FROM products WHERE seller_username = ? ORDER BY product_id DESC";
+    String productSql = "SELECT product_id, name, price, image, product_type, size, color, brand, stock_quantity FROM products WHERE seller_username = ? ORDER BY product_id DESC";
     try (Connection conn = DatabaseConnection.getConnection();
          PreparedStatement stmt = conn.prepareStatement(productSql)) {
         stmt.setString(1, user.getUsername());
@@ -29,6 +29,7 @@
                 p.setSize(rs.getString("size") != null ? rs.getString("size") : "");
                 p.setColor(rs.getString("color") != null ? rs.getString("color") : "");
                 p.setBrand(rs.getString("brand") != null ? rs.getString("brand") : "");
+                p.setStockQuantity(rs.getInt("stock_quantity"));
                 products.add(p);
             }
         }
@@ -52,23 +53,19 @@
         .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
         .navbar .nav-links a:hover { opacity: 0.6; }
         .container { max-width: 1200px; margin: 0 auto; padding: 60px 30px; }
-        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 50px; }
-        .add-product-box { background: #fff; border: 1px solid #eee; padding: 40px; margin-bottom: 50px; }
-        .add-product-box h2 { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 400; letter-spacing: 1px; margin-bottom: 30px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.8em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
-        .form-group input { padding: 14px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; }
-        .form-group input:focus { outline: none; border-color: #1a1a1a; }
-        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; }
+        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
+        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
         .add-btn:hover { background: #333; }
-        .products-section h2 { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 400; letter-spacing: 1px; margin-bottom: 30px; }
+        .products-section { margin-top: 0; }
         .products-table { background: #fff; border: 1px solid #eee; width: 100%; border-collapse: collapse; }
         .products-table th { background: #f5f5f5; padding: 18px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #eee; }
         .products-table td { padding: 18px; border-bottom: 1px solid #eee; }
         .products-table tr:last-child td { border-bottom: none; }
         .product-image-cell { width: 80px; height: 80px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 1.5em; color: #ddd; overflow: hidden; }
         .product-image-cell img { max-width: 100%; max-height: 100%; object-fit: cover; }
+        .edit-btn { padding: 10px 20px; background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .edit-btn:hover { background: #1a1a1a; color: #fff; }
         .delete-btn { padding: 10px 20px; background: transparent; color: #d32f2f; border: 1px solid #d32f2f; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
         .delete-btn:hover { background: #d32f2f; color: #fff; }
         .no-products { text-align: center; padding: 60px; color: #888; background: #fff; border: 1px solid #eee; }
@@ -81,64 +78,18 @@
     <nav class="navbar">
         <a href="index.jsp" class="logo">CLOTHING STORE</a>
         <div class="nav-links">
-            <a href="sellerDashboard.jsp">Dashboard</a>
+            <a href="sellerDashboard">Dashboard</a>
             <a href="sellerShop.jsp">My Shop</a>
             <a href="products">View Store</a>
             <a href="logout">Logout</a>
         </div>
     </nav>
     <div class="container">
-        <h1>Manage Products</h1>
-        <div class="add-product-box">
-            <h2>Add New Product</h2>
-            <form action="products" method="post">
-                <input type="hidden" name="action" value="add">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Product Name</label>
-                        <input type="text" id="name" name="name" placeholder="Enter product name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="price">Price ($)</label>
-                        <input type="number" id="price" name="price" step="0.01" min="0" placeholder="0.00" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="image">Image URL</label>
-                        <input type="url" id="image" name="image" placeholder="https://..." aria-label="Image URL">
-                    </div>
-                </div>
-                <div class="form-row" style="margin-top:15px; grid-template-columns: repeat(4, 1fr);">
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <input type="text" id="category" name="category" placeholder="e.g. Women" aria-label="Category">
-                    </div>
-                    <div class="form-group">
-                        <label for="productType">Type</label>
-                        <input type="text" id="productType" name="productType" placeholder="e.g. Dress" aria-label="Product type">
-                    </div>
-                    <div class="form-group">
-                        <label for="size">Size</label>
-                        <input type="text" id="size" name="size" placeholder="e.g. M" aria-label="Size">
-                    </div>
-                    <div class="form-group">
-                        <label for="color">Color</label>
-                        <input type="text" id="color" name="color" placeholder="e.g. Black" aria-label="Color">
-                    </div>
-                </div>
-                <div class="form-row" style="margin-top:15px; grid-template-columns: repeat(4, 1fr);">
-                    <div class="form-group">
-                        <label for="brand">Brand</label>
-                        <input type="text" id="brand" name="brand" placeholder="e.g. Maison" aria-label="Brand">
-                    </div>
-                    <div class="form-group" style="grid-column: span 3;">
-                        <label>&nbsp;</label>
-                        <button type="submit" class="add-btn" style="width:100%;">Add Product</button>
-                    </div>
-                </div>
-            </form>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px;">
+            <h1 style="margin-bottom: 0;">Product Inventory</h1>
+            <a href="addProduct.jsp" class="add-btn" style="text-decoration: none; display: inline-block;">Add New Product</a>
         </div>
         <div class="products-section">
-            <h2>Product Inventory</h2>
             <% if (products.isEmpty()) { %>
                 <div class="no-products">
                     <p>No products yet. Add your first product above!</p>
@@ -154,8 +105,9 @@
                             <th>Color</th>
                             <th>Brand</th>
                             <th>Price</th>
+                            <th>Stock</th>
                             <th>Links</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,8 +128,10 @@
                                 <td><%= p.getColor() %></td>
                                 <td><%= p.getBrand() %></td>
                                 <td>$<%= String.format("%.2f", p.getPrice()) %></td>
+                                <td><%= p.getStockQuantity() %></td>
                                 <td><a href="product?id=<%= p.getId() %>" style="text-decoration:none; color:#1a1a1a;">View</a></td>
-                                <td>
+                                <td style="display:flex; gap:10px;">
+                                    <a href="editProduct.jsp?id=<%= p.getId() %>" class="edit-btn">Edit</a>
                                     <form action="products" method="post" style="display:inline;">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<%= p.getId() %>">

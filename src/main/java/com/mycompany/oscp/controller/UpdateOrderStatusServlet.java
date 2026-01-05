@@ -62,7 +62,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
                 }
 
                 // Update order status
-                String updateOrderSql = "UPDATE orders SET status = ? WHERE order_id = ?";
+                String updateOrderSql = "UPDATE orders SET status = ? WHERE id = ?";
                 try (PreparedStatement psUpdate = conn.prepareStatement(updateOrderSql)) {
                     psUpdate.setString(1, newStatus);
                     psUpdate.setInt(2, orderId);
@@ -71,7 +71,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
                     if (rowsUpdated == 0) {
                         conn.rollback();
                         req.setAttribute("error", "Order not found");
-                        req.getRequestDispatcher("/sellerDashboard.jsp").forward(req, res);
+                        req.getRequestDispatcher("/sellerDashboard").forward(req, res);
                         return;
                     }
                 }
@@ -109,7 +109,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
             req.setAttribute("error", "Invalid order ID");
         }
 
-        req.getRequestDispatcher("/sellerDashboard.jsp").forward(req, res);
+        req.getRequestDispatcher("/sellerDashboard").forward(req, res);
     }
 
     private String getDefaultTrackingLocation(String status) {

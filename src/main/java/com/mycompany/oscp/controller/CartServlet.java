@@ -93,8 +93,8 @@ public class CartServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession();
-        if (session.getAttribute("user") == null) {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
             res.sendRedirect(req.getContextPath() + "/login");
             return;
         }
@@ -141,8 +141,8 @@ public class CartServlet extends HttpServlet {
                             boolean inStock = rsStock.getBoolean("in_stock");
                             
                             if (!inStock || availableStock < quantity) {
-                                req.setAttribute("error", "Only " + availableStock + " items available in stock");
-                                req.getRequestDispatcher("/products").forward(req, res);
+                                session.setAttribute("error", "Only " + availableStock + " items available in stock");
+                                res.sendRedirect(req.getContextPath() + "/product?id=" + id);
                                 return;
                             }
                         }
@@ -150,8 +150,8 @@ public class CartServlet extends HttpServlet {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                req.setAttribute("error", "Failed to check stock availability");
-                req.getRequestDispatcher("/products").forward(req, res);
+                session.setAttribute("error", "Failed to check stock availability");
+                res.sendRedirect(req.getContextPath() + "/product?id=" + id);
                 return;
             }
 
@@ -166,8 +166,7 @@ public class CartServlet extends HttpServlet {
             }
 
             // Also record cart item in database using carts/cart_items schema
-        
-            if (user != null) {
+                if (user != null) {
                 try (Connection conn = DatabaseConnection.getConnection()) {
                     // Find or create a cart for this user
                     Integer cartId = null;

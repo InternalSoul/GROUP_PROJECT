@@ -1,7 +1,7 @@
 -- DatabaseSetup
 
 -- in netbeans create database
--- put the name as Clothing_store2
+-- put the name as ClothingStore2
 -- username "root"
 -- password "root"
 -- just copy everything and paste in executable command 

@@ -40,7 +40,7 @@ public class LoginServlet extends HttpServlet {
                         if ("customer".equals(user.getRole())) {
                             res.sendRedirect("products");
                         } else {
-                            res.sendRedirect("sellerDashboard.jsp");
+                            res.sendRedirect("sellerDashboard");
                         }
                         return;
                     } else {
