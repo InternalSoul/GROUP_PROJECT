@@ -21,7 +21,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        
+
         // Only sellers and admins can update order status
         if (!"seller".equals(user.getRole()) && !"admin".equals(user.getRole())) {
             res.sendRedirect(req.getContextPath() + "/index.jsp");
@@ -47,7 +47,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
                 // Verify the seller owns products in this order
                 if ("seller".equals(user.getRole())) {
                     String verifySql = "SELECT COUNT(*) as count FROM order_items " +
-                                      "WHERE order_id = ? AND seller_username = ?";
+                            "WHERE order_id = ? AND seller_username = ?";
                     try (PreparedStatement psVerify = conn.prepareStatement(verifySql)) {
                         psVerify.setInt(1, orderId);
                         psVerify.setString(2, user.getUsername());
@@ -79,7 +79,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
                 // Update order tracking if location provided
                 if (trackingLocation != null && !trackingLocation.isEmpty()) {
                     String updateTrackingSql = "UPDATE order_tracking SET current_location = ?, " +
-                                               "last_updated = CURRENT_TIMESTAMP WHERE order_id = ?";
+                            "last_updated = CURRENT_TIMESTAMP WHERE order_id = ?";
                     try (PreparedStatement psTracking = conn.prepareStatement(updateTrackingSql)) {
                         psTracking.setString(1, trackingLocation);
                         psTracking.setInt(2, orderId);
@@ -89,7 +89,7 @@ public class UpdateOrderStatusServlet extends HttpServlet {
                     // Set default tracking location based on status
                     String defaultLocation = getDefaultTrackingLocation(newStatus);
                     String updateTrackingSql = "UPDATE order_tracking SET current_location = ?, " +
-                                               "last_updated = CURRENT_TIMESTAMP WHERE order_id = ?";
+                            "last_updated = CURRENT_TIMESTAMP WHERE order_id = ?";
                     try (PreparedStatement psTracking = conn.prepareStatement(updateTrackingSql)) {
                         psTracking.setString(1, defaultLocation);
                         psTracking.setInt(2, orderId);
