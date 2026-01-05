@@ -98,7 +98,11 @@ public class ProductDetailServlet extends HttpServlet {
             }
 
             // Fetch reviews for the product
-            String reviewSql = "SELECT review_id, product_id, user_id, rating, comment, created_at FROM reviews WHERE product_id = ? ORDER BY created_at DESC";
+            String reviewSql = "SELECT r.review_id, r.product_id, r.user_id, r.rating, r.comment, r.review_date, u.username "
+                    +
+                    "FROM reviews r " +
+                    "JOIN users u ON r.user_id = u.user_id " +
+                    "WHERE r.product_id = ? ORDER BY r.review_date DESC";
             try (PreparedStatement stmt = conn.prepareStatement(reviewSql)) {
                 stmt.setInt(1, productId);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -106,12 +110,12 @@ public class ProductDetailServlet extends HttpServlet {
                         Review review = new Review();
                         review.setId(rs.getInt("review_id"));
                         review.setProductId(rs.getInt("product_id"));
-                        review.setUserId(rs.getString("user_id") != null ? rs.getString("user_id") : "");
-                        review.setUsername(rs.getString("user_id") != null ? rs.getString("user_id") : "");
+                        review.setUserId(String.valueOf(rs.getInt("user_id")));
+                        review.setUsername(rs.getString("username"));
                         review.setRating(rs.getInt("rating"));
                         review.setComment(rs.getString("comment") != null ? rs.getString("comment") : "");
                         try {
-                            review.setCreatedAt(rs.getTimestamp("created_at"));
+                            review.setCreatedAt(rs.getTimestamp("review_date"));
                         } catch (SQLException ignored) {
                             review.setCreatedAt(null);
                         }

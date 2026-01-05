@@ -90,8 +90,6 @@ public class ProductsServlet extends HttpServlet {
             StringBuilder whereClause = new StringBuilder("WHERE 1=1");
             List<Object> params = new ArrayList<>();
             
-            // Only show products with stock
-            whereClause.append(" AND stock_quantity > 0 AND in_stock = true");
 
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                 whereClause.append(" AND (LOWER(name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?))");

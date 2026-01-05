@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="com.mycompany.oscp.model.*" %>
+<%@ page import="java.sql.*, com.mycompany.oscp.model.*" %>
 <%
     User user = (User) session.getAttribute("user");
     if (user == null) {
@@ -7,8 +7,65 @@
         return;
     }
     
-    String productName = request.getParameter("product");
-    if (productName == null) productName = "Your Purchase";
+    String productIdParam = request.getParameter("productId");
+    if (productIdParam == null || productIdParam.isEmpty()) {
+        session.setAttribute("error", "No product specified for review");
+        response.sendRedirect("orderHistory");
+        return;
+    }
+    
+    int productId = 0;
+    String productName = "Product";
+    String productImage = "";
+    boolean hasPurchased = false;
+    
+    try {
+        productId = Integer.parseInt(productIdParam);
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Check if user has purchased this product
+            String checkSql = "SELECT COUNT(*) FROM orders o " +
+                            "JOIN order_items oi ON o.id = oi.order_id " +
+                            "WHERE user_username = ? AND oi.product_id = ? AND status = 'Delivered'";
+            try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+                ps.setString(1, user.getUsername());
+                ps.setInt(2, productId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        hasPurchased = true;
+                    }
+                }
+            }
+            
+            if (!hasPurchased) {
+                session.setAttribute("error", "You can only review products you have purchased");
+                response.sendRedirect("orderHistory");
+                return;
+            }
+            
+            // Get product details
+            String productSql = "SELECT name, image FROM products WHERE product_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(productSql)) {
+                ps.setInt(1, productId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        productName = rs.getString("name");
+                        productImage = rs.getString("image");
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        session.setAttribute("error", "Error loading review page: " + e.getMessage());
+        response.sendRedirect("orderHistory");
+        return;
+    }
+    
+    String errorMsg = (String) session.getAttribute("error");
+    if (errorMsg != null) {
+        session.removeAttribute("error");
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -58,11 +115,22 @@
     </nav>
     <div class="container">
         <h1>Write a Review</h1>
+        <% if (errorMsg != null) { %>
+        <div style="background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:14px; margin-bottom:20px; border-radius:8px;">
+            <%= errorMsg %>
+        </div>
+        <% } %>
         <div class="review-box">
+            <% if (productImage != null && !productImage.isEmpty()) { %>
+            <div style="text-align:center; margin-bottom:30px;">
+                <img src="<%= productImage %>" alt="<%= productName %>" style="max-width:200px; max-height:200px; object-fit:cover; border-radius:8px;">
+            </div>
+            <% } %>
             <form action="review" method="post">
+                <input type="hidden" name="productId" value="<%= productId %>">
                 <div class="form-group">
                     <label for="productName">Product</label>
-                    <input type="text" id="productName" name="productName" value="<%= productName %>" readonly>
+                    <input type="text" id="productName" name="productName" value="<%= productName %>" readonly style="background:#f5f5f5;">
                 </div>
                 <div class="form-group">
                     <label>Rating</label>

@@ -6,6 +6,8 @@
         response.sendRedirect("login");
         return;
     }
+    
+    Integer productId = (Integer) request.getAttribute("productId");
 %>
 <!DOCTYPE html>
 <html>
@@ -51,8 +53,11 @@
             <div class="success-icon">✓</div>
             <h1>Thank You!</h1>
             <p class="subtitle">Your review has been submitted successfully. We appreciate your feedback!</p>
-            <a href="products" class="btn">Continue Shopping</a>
-            <a href="tracking" class="btn btn-outline">Track Order</a>
+            <% if (productId != null) { %>
+                <a href="product?id=<%= productId %>" class="btn">View Product</a>
+            <% } %>
+            <a href="orderHistory" class="btn btn-outline">Order History</a>
+            <a href="products" class="btn btn-outline">Continue Shopping</a>
         </div>
     </div>
     <footer class="footer"><div class="footer-logo">CLOTHING STORE</div><p>© 2026 Clothing Store. All rights reserved.</p></footer>

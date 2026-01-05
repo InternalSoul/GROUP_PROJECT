@@ -10,6 +10,11 @@
     List<Order> sellerOrders = (List<Order>) request.getAttribute("sellerOrders");
     if (customerOrders == null) customerOrders = new ArrayList<>();
     if (sellerOrders == null) sellerOrders = new ArrayList<>();
+    
+    String errorMsg = (String) session.getAttribute("error");
+    if (errorMsg != null) {
+        session.removeAttribute("error");
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -47,6 +52,9 @@
         .empty { padding: 30px; text-align: center; background: #fff; border: 1px solid #eee; color: #888; font-size: 0.95em; }
         .track-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #1a1a1a; background: #fff; color: #1a1a1a; text-decoration: none; transition: background 0.2s, color 0.2s; }
         .track-btn:hover { background: #1a1a1a; color: #fff; }
+        .review-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #166534; background: #fff; color: #166534; text-decoration: none; transition: background 0.2s, color 0.2s; margin-top: 6px; }
+        .review-btn:hover { background: #166534; color: #fff; }
+        .action-buttons { display: flex; flex-direction: column; gap: 6px; }
         .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 60px; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
         .footer p { color: #666; font-size: 0.8em; }
@@ -56,6 +64,12 @@
     <jsp:include page="header.jsp" />
     <div class="container">
         <h1>Order History</h1>
+        
+        <% if (errorMsg != null) { %>
+        <div style="background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:14px; margin-bottom:20px; border-radius:8px;">
+            <%= errorMsg %>
+        </div>
+        <% } %>
 
         <div class="section-title">Your Purchases</div>
         <% if (customerOrders.isEmpty()) { %>
@@ -118,7 +132,19 @@
                                 </div>
                             </td>
                             <td>$<%= String.format("%.2f", o.calcTotal()) %></td>
-                            <td><a href="tracking?orderId=<%= o.getId() %>" class="track-btn">Track Order</a></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="tracking?orderId=<%= o.getId() %>" class="track-btn">Track Order</a>
+                                    <% if ("Delivered".equalsIgnoreCase(o.getStatus()) && o.getOrderDetails() != null) {
+                                           for (OrderDetails od : o.getOrderDetails()) {
+                                               Product p = od.getProduct();
+                                               if (p != null) { %>
+                                                   <a href="review.jsp?productId=<%= p.getId() %>" class="review-btn">Review <%= p.getName() %></a>
+                                    <%         }
+                                           }
+                                       } %>
+                                </div>
+                            </td>
                         </tr>
                     <% } %>
                 </tbody>
