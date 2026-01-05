@@ -6,6 +6,7 @@ public class User {
     private String email;
     private String password;
     private String address;
+    private String phone;
 
     public User() {
         this.role = "";
@@ -13,6 +14,7 @@ public class User {
         this.email = "";
         this.password = "";
         this.address = "";
+        this.phone = "";
     }
 
     public User(String role, String username, String email, String password, String address) {
@@ -21,6 +23,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.address = address;
+        this.phone = "";
     }
 
     // Getters
@@ -44,6 +47,10 @@ public class User {
         return password;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
     // Setters
     public void setRole(String role) {
         this.role = role;
@@ -63,6 +70,10 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     // Actions

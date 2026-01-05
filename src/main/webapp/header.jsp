@@ -40,6 +40,7 @@
             <a href="sellerShop.jsp">My Shop</a>
         <% } %>
         <% if (user != null) { %>
+            <a href="profile">Profile</a>
             <span class="user-name">Hi, <%= user.getUsername() %></span>
             <a href="logout">Logout</a>
         <% } else { %>
