@@ -3,26 +3,18 @@ package com.mycompany.oscp.controller;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.annotation.MultipartConfig;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.*;
-import java.util.Base64;
 import com.mycompany.oscp.model.*;
 
 @WebServlet("/products")
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1 MB
-        maxFileSize = 1024 * 1024 * 10, // 10 MB
-        maxRequestSize = 1024 * 1024 * 50 // 50 MB
-)
 public class ProductsServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
 
-        // Check if user is logged in
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             res.sendRedirect(req.getContextPath() + "/login");
@@ -32,57 +24,158 @@ public class ProductsServlet extends HttpServlet {
         List<Product> products = new ArrayList<>();
         String searchQuery = req.getParameter("search");
         String sortParam = req.getParameter("sort");
+        String productType = req.getParameter("productType");
+        String size = req.getParameter("size");
+        String color = req.getParameter("color");
+        String brand = req.getParameter("brand");
+        String priceRange = req.getParameter("priceRange");
+
+        Set<String> productTypes = new HashSet<>();
+        Set<String> sizes = new HashSet<>();
+        Set<String> colors = new HashSet<>();
+        Set<String> brands = new HashSet<>();
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql;
-            PreparedStatement stmt;
 
-            // Determine ORDER BY clause based on sort parameter
-            String orderByClause = "";
-            if ("priceAsc".equals(sortParam)) {
-                orderByClause = " ORDER BY PRICE ASC";
-            } else if ("priceDesc".equals(sortParam)) {
-                orderByClause = " ORDER BY PRICE DESC";
-            } else if ("nameAsc".equals(sortParam)) {
-                orderByClause = " ORDER BY NAME ASC";
-            } else if ("nameDesc".equals(sortParam)) {
-                orderByClause = " ORDER BY NAME DESC";
-            }
-
-            // Search functionality
-            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-                sql = "SELECT * FROM PRODUCTS WHERE UPPER(NAME) LIKE UPPER(?)" + orderByClause;
-                stmt = conn.prepareStatement(sql);
-                stmt.setString(1, "%" + searchQuery + "%");
-            } else {
-                sql = "SELECT * FROM PRODUCTS" + orderByClause;
-                stmt = conn.prepareStatement(sql);
-            }
-
-            try (ResultSet rs = stmt.executeQuery()) {
+            // Get distinct filter values
+            try (Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(
+                            "SELECT DISTINCT product_type FROM products WHERE product_type IS NOT NULL ORDER BY product_type")) {
                 while (rs.next()) {
-                    Product p = new Product();
-                    p.setId(rs.getInt("PRODUCT_ID"));
-                    p.setName(rs.getString("NAME"));
-                    p.setPrice(rs.getDouble("PRICE"));
-                    // Handle IMAGE column as BLOB
-                    try {
-                        Blob imageBlob = rs.getBlob("IMAGE");
-                        if (imageBlob != null && imageBlob.length() > 0) {
-                            byte[] imageBytes = imageBlob.getBytes(1, (int) imageBlob.length());
-                            String base64Image = "data:image/jpeg;base64,"
-                                    + Base64.getEncoder().encodeToString(imageBytes);
-                            p.setImage(base64Image);
-                        } else {
-                            p.setImage("");
-                        }
-                    } catch (SQLException e) {
-                        p.setImage("");
-                    }
-                    products.add(p);
+                    String val = rs.getString("product_type");
+                    if (val != null && !val.isEmpty())
+                        productTypes.add(val);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            try (Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt
+                            .executeQuery("SELECT DISTINCT size FROM products WHERE size IS NOT NULL ORDER BY size")) {
+                while (rs.next()) {
+                    String val = rs.getString("size");
+                    if (val != null && !val.isEmpty())
+                        sizes.add(val);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            try (Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(
+                            "SELECT DISTINCT color FROM products WHERE color IS NOT NULL ORDER BY color")) {
+                while (rs.next()) {
+                    String val = rs.getString("color");
+                    if (val != null && !val.isEmpty())
+                        colors.add(val);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            try (Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(
+                            "SELECT DISTINCT brand FROM products WHERE brand IS NOT NULL ORDER BY brand")) {
+                while (rs.next()) {
+                    String val = rs.getString("brand");
+                    if (val != null && !val.isEmpty())
+                        brands.add(val);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // Build WHERE clause
+            StringBuilder whereClause = new StringBuilder("WHERE 1=1");
+            List<Object> params = new ArrayList<>();
+
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                whereClause.append(" AND (LOWER(name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?))");
+                params.add("%" + searchQuery + "%");
+                params.add("%" + searchQuery + "%");
+            }
+
+            if (productType != null && !productType.trim().isEmpty()) {
+                whereClause.append(" AND product_type = ?");
+                params.add(productType);
+            }
+
+            if (size != null && !size.trim().isEmpty()) {
+                whereClause.append(" AND size = ?");
+                params.add(size);
+            }
+
+            if (color != null && !color.trim().isEmpty()) {
+                whereClause.append(" AND color = ?");
+                params.add(color);
+            }
+
+            if (brand != null && !brand.trim().isEmpty()) {
+                whereClause.append(" AND brand = ?");
+                params.add(brand);
+            }
+
+            if (priceRange != null && !priceRange.isEmpty()) {
+                switch (priceRange) {
+                    case "0-50":
+                        whereClause.append(" AND price BETWEEN 0 AND 50");
+                        break;
+                    case "50-100":
+                        whereClause.append(" AND price BETWEEN 50 AND 100");
+                        break;
+                    case "100-200":
+                        whereClause.append(" AND price BETWEEN 100 AND 200");
+                        break;
+                    case "200":
+                        whereClause.append(" AND price > 200");
+                        break;
                 }
             }
-            stmt.close();
+
+            // Determine ORDER BY clause
+            String orderByClause = "";
+            if ("priceAsc".equals(sortParam)) {
+                orderByClause = " ORDER BY price ASC";
+            } else if ("priceDesc".equals(sortParam)) {
+                orderByClause = " ORDER BY price DESC";
+            } else if ("nameAsc".equals(sortParam)) {
+                orderByClause = " ORDER BY name ASC";
+            } else if ("nameDesc".equals(sortParam)) {
+                orderByClause = " ORDER BY name DESC";
+            } else {
+                orderByClause = " ORDER BY name ASC";
+            }
+
+            String sql = "SELECT product_id, name, price, image, seller_username, category, product_type, size, color, brand, material, rating, in_stock FROM products "
+                    + whereClause.toString() + orderByClause;
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                for (int i = 0; i < params.size(); i++) {
+                    stmt.setString(i + 1, params.get(i).toString());
+                }
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        Product p = new Product();
+                        p.setId(rs.getInt("product_id"));
+                        p.setName(rs.getString("name"));
+                        p.setPrice(rs.getDouble("price"));
+                        p.setImage(rs.getString("image") != null ? rs.getString("image") : "");
+                        p.setCategory(rs.getString("category") != null ? rs.getString("category") : "");
+                        p.setSellerUsername(
+                                rs.getString("seller_username") != null ? rs.getString("seller_username") : "");
+                        p.setProductType(rs.getString("product_type") != null ? rs.getString("product_type") : "");
+                        p.setSize(rs.getString("size") != null ? rs.getString("size") : "");
+                        p.setColor(rs.getString("color") != null ? rs.getString("color") : "");
+                        p.setBrand(rs.getString("brand") != null ? rs.getString("brand") : "");
+                        p.setMaterial(rs.getString("material") != null ? rs.getString("material") : "");
+                        p.setRating(rs.getDouble("rating"));
+                        p.setInStock(rs.getBoolean("in_stock"));
+                        products.add(p);
+                    }
+                }
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -90,102 +183,89 @@ public class ProductsServlet extends HttpServlet {
         }
 
         req.setAttribute("products", products);
+        req.setAttribute("productTypes", productTypes);
+        req.setAttribute("sizes", sizes);
+        req.setAttribute("colors", colors);
+        req.setAttribute("brands", brands);
+        req.setAttribute("searchQuery", searchQuery != null ? searchQuery : "");
+        req.setAttribute("sortParam", sortParam != null ? sortParam : "");
+        req.setAttribute("selectedProductType", productType != null ? productType : "");
+        req.setAttribute("selectedSize", size != null ? size : "");
+        req.setAttribute("selectedColor", color != null ? color : "");
+        req.setAttribute("selectedBrand", brand != null ? brand : "");
+        req.setAttribute("selectedPriceRange", priceRange != null ? priceRange : "");
+
         req.getRequestDispatcher("/products.jsp").forward(req, res);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
-
-        System.out.println("=== ProductsServlet doPost called ===");
-        System.out.println("Content-Type: " + req.getContentType());
-
         HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        if (user == null || (!"seller".equals(user.getRole()) && !"admin".equals(user.getRole()))) {
             res.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        User user = (User) session.getAttribute("user");
         String action = req.getParameter("action");
-        System.out.println("Action parameter: " + action);
-        System.out.println("User role: " + user.getRole());
-
-        // Only sellers can add/delete products
-        if (!"seller".equalsIgnoreCase(user.getRole())) {
-            System.out.println("User is not a seller, redirecting...");
-            res.sendRedirect(req.getContextPath() + "/products");
+        if (action == null || action.isEmpty()) {
+            res.sendRedirect(req.getContextPath() + "/sellerShop.jsp");
             return;
         }
 
-        String errorMsg = null;
-
         try (Connection conn = DatabaseConnection.getConnection()) {
-            System.out.println("Database connection successful");
-
-            if ("delete".equals(action)) {
-                String idParam = req.getParameter("id");
-                if (idParam != null && !idParam.isEmpty()) {
-                    int id = Integer.parseInt(idParam);
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "DELETE FROM PRODUCTS WHERE PRODUCT_ID = ?")) {
-                        ps.setInt(1, id);
-                        int rows = ps.executeUpdate();
-                        System.out.println("Deleted " + rows + " product(s) with ID: " + id);
-                    }
-                }
-            } else if ("add".equals(action)) {
+            if ("add".equalsIgnoreCase(action)) {
                 String name = req.getParameter("name");
-                String priceParam = req.getParameter("price");
-                System.out.println("Adding product - Name: " + name + ", Price: " + priceParam);
+                String priceStr = req.getParameter("price");
+                String image = req.getParameter("image");
+                String category = req.getParameter("category");
+                String productType = req.getParameter("productType");
+                String size = req.getParameter("size");
+                String color = req.getParameter("color");
+                String brand = req.getParameter("brand");
 
-                // Handle file upload as BLOB
-                byte[] imageBytes = null;
+                double price = 0.0;
                 try {
-                    Part filePart = req.getPart("image");
-                    if (filePart != null && filePart.getSize() > 0) {
-                        try (InputStream fileContent = filePart.getInputStream()) {
-                            imageBytes = fileContent.readAllBytes();
-                            System.out.println("Image read: " + imageBytes.length + " bytes");
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("File upload error: " + e.getMessage());
-                    e.printStackTrace();
-                    // Continue without image
+                    price = Double.parseDouble(priceStr);
+                } catch (NumberFormatException ignored) {
+                    price = 0.0;
                 }
 
-                if (name != null && !name.trim().isEmpty() && priceParam != null && !priceParam.isEmpty()) {
-                    double price = Double.parseDouble(priceParam);
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "INSERT INTO PRODUCTS (NAME, PRICE, IMAGE) VALUES (?, ?, ?)")) {
-                        ps.setString(1, name.trim());
-                        ps.setDouble(2, price);
-                        if (imageBytes != null) {
-                            ps.setBytes(3, imageBytes);
-                        } else {
-                            ps.setNull(3, Types.BLOB);
-                        }
-                        int rows = ps.executeUpdate();
-                        System.out
-                                .println("Added product: " + name + " (Price: " + price + ") - Rows affected: " + rows);
-                    }
-                } else {
-                    errorMsg = "Product name and price are required";
-                    System.err.println(errorMsg);
+                String insertSql = "INSERT INTO products (name, price, image, seller_username, category, product_type, size, color, brand) "
+                        + "VALUES (?,?,?,?,?,?,?,?,?)";
+                try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+                    stmt.setString(1, name != null ? name : "");
+                    stmt.setDouble(2, price);
+                    stmt.setString(3, image != null ? image : "");
+                    stmt.setString(4, user.getUsername());
+                    stmt.setString(5, category != null ? category : "");
+                    stmt.setString(6, productType != null ? productType : "");
+                    stmt.setString(7, size != null ? size : "");
+                    stmt.setString(8, color != null ? color : "");
+                    stmt.setString(9, brand != null ? brand : "");
+                    stmt.executeUpdate();
+                }
+            } else if ("delete".equalsIgnoreCase(action)) {
+                String idParam = req.getParameter("id");
+                int productId = 0;
+                try {
+                    productId = Integer.parseInt(idParam);
+                } catch (NumberFormatException ignored) {
+                    productId = 0;
+                }
+
+                String deleteSql = "DELETE FROM products WHERE product_id = ? AND seller_username = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
+                    stmt.setInt(1, productId);
+                    stmt.setString(2, user.getUsername());
+                    stmt.executeUpdate();
                 }
             }
         } catch (SQLException e) {
-            errorMsg = "Database error: " + e.getMessage();
-            System.err.println(errorMsg);
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
-            errorMsg = "Invalid number format: " + e.getMessage();
-            System.err.println(errorMsg);
             e.printStackTrace();
         }
 
-        // Redirect sellers back to their shop management page
         res.sendRedirect(req.getContextPath() + "/sellerShop.jsp");
     }
 }

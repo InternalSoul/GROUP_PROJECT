@@ -5,23 +5,16 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 
-@WebServlet("/logout")
+@WebServlet("/logout") // Make sure this matches the URL
 public class LogoutServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
-
         HttpSession session = req.getSession(false);
         if (session != null) {
-            session.invalidate();
+            session.invalidate(); // log out the user
         }
-        res.sendRedirect(req.getContextPath() + "/login");
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res)
-            throws ServletException, IOException {
-        doGet(req, res);
+        res.sendRedirect("login"); // redirect to login page
     }
 }

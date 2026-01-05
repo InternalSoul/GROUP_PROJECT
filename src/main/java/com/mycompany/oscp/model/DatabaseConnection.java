@@ -6,9 +6,7 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
     // Derby database connection settings
-    // Using the same database shown in your screenshot:
-    // jdbc:derby://localhost:1527/Clothing_store
-    private static final String URL = "jdbc:derby://localhost:1527/Clothing_store";
+    private static final String URL = "jdbc:derby://localhost:1527/Clothing_store2;create=true";
     private static final String USER = "root";
     private static final String PASSWORD = "root";
 
@@ -24,9 +22,6 @@ public class DatabaseConnection {
 
     /**
      * Returns a Connection object to the Derby database
-     * 
-     * @return Connection to Clothing_store database
-     * @throws SQLException if connection fails
      */
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -34,14 +29,14 @@ public class DatabaseConnection {
 
     /**
      * Test the database connection
-     * 
-     * @return true if connection successful, false otherwise
      */
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {
-            return conn != null && !conn.isClosed();
+            System.out.println("Database connection successful!");
+            return true;
         } catch (SQLException e) {
             System.err.println("Database connection failed: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

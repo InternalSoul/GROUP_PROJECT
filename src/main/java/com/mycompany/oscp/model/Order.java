@@ -1,6 +1,5 @@
 package com.mycompany.oscp.model;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +15,7 @@ public class Order {
         this.id = 0;
         this.date = new Date();
         this.status = "Pending";
-        this.orderDetails = new ArrayList<>();
+        this.orderDetails = null;
         this.payment = null;
         this.user = null;
     }
@@ -60,20 +59,16 @@ public class Order {
         this.id = id;
     }
 
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+    }
+
     public void setDate(Date date) {
         this.date = date;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public void setOrderDetails(List<OrderDetails> orderDetails) {
         this.orderDetails = orderDetails;
-    }
-
-    public void setPayment(Payment payment) {
-        this.payment = payment;
     }
 
     public void setUser(User user) {
@@ -81,20 +76,13 @@ public class Order {
     }
 
     public double calcTotal() {
+        if (orderDetails == null)
+            return 0;
         double total = 0;
-        if (orderDetails != null) {
-            for (OrderDetails od : orderDetails) {
-                total += od.calcSubTotal();
-            }
+        for (OrderDetails od : orderDetails) {
+            total += od.calcSubTotal();
         }
         return total;
-    }
-
-    public void addOrderDetail(OrderDetails detail) {
-        if (orderDetails == null) {
-            orderDetails = new ArrayList<>();
-        }
-        orderDetails.add(detail);
     }
 
     public void createOrder() {
@@ -104,5 +92,9 @@ public class Order {
     public void cancelOrder() {
         this.status = "Cancelled";
         System.out.println("Order " + id + " cancelled");
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
