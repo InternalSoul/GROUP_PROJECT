@@ -37,10 +37,11 @@ public class LoginServlet extends HttpServlet {
                         HttpSession session = req.getSession();
                         session.setAttribute("user", user);
 
+                        String contextPath = req.getContextPath();
                         if ("customer".equals(user.getRole())) {
-                            res.sendRedirect("products");
+                            res.sendRedirect(contextPath + "/products");
                         } else {
-                            res.sendRedirect("sellerDashboard");
+                            res.sendRedirect(contextPath + "/sellerDashboard");
                         }
                         return;
                     } else {

@@ -15,7 +15,7 @@ public class TrackingServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
-        
+
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             res.sendRedirect(req.getContextPath() + "/login");
@@ -23,19 +23,40 @@ public class TrackingServlet extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
+        String orderIdParam = req.getParameter("orderId");
+
+        if (orderIdParam == null) {
+            req.setAttribute("error", "No order selected for tracking.");
+            req.getRequestDispatcher("/tracking.jsp").forward(req, res);
+            return;
+        }
+
+        int orderId;
+        try {
+            orderId = Integer.parseInt(orderIdParam);
+        } catch (NumberFormatException e) {
+            req.setAttribute("error", "Invalid order ID for tracking.");
+            req.getRequestDispatcher("/tracking.jsp").forward(req, res);
+            return;
+        }
+
         List<Order> orders = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // Use correct column names: id, user_username, created_at
+            // Include payment_method from both orders and payments so it can
+            // be shown on the tracking page even if one of them is NULL.
             String sql = "SELECT o.id, o.user_username, o.created_at, o.total_amount, o.status, " +
-                        "ot.tracking_id, ot.current_location, ot.estimated_delivery, ot.last_updated " +
-                        "FROM orders o " +
-                        "LEFT JOIN order_tracking ot ON o.id = ot.order_id " +
-                        "WHERE o.user_username = ? " +
-                        "ORDER BY o.created_at DESC";
-            
+                    "o.payment_method, p.payment_method AS payment_method_payments, " +
+                    "ot.tracking_id, ot.current_location, ot.estimated_delivery, ot.last_updated " +
+                    "FROM orders o " +
+                    "LEFT JOIN payments p ON o.id = p.order_id " +
+                    "LEFT JOIN order_tracking ot ON o.id = ot.order_id " +
+                    "WHERE o.user_username = ? AND o.id = ? " +
+                    "ORDER BY o.created_at DESC";
+
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, user.getUsername());
+            pstmt.setInt(2, orderId);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -46,7 +67,38 @@ public class TrackingServlet extends HttpServlet {
                 order.setDate(rs.getTimestamp("created_at"));
                 order.setTotalAmount(rs.getDouble("total_amount"));
                 order.setStatus(rs.getString("status"));
-                
+
+                // Map stored payment method (from orders or payments table)
+                // to a user-friendly label
+                String paymentMethodDb = rs.getString("payment_method");
+                if (paymentMethodDb == null || paymentMethodDb.isEmpty()) {
+                    paymentMethodDb = rs.getString("payment_method_payments");
+                }
+                if (paymentMethodDb != null) {
+                    String methodDisplay;
+                    switch (paymentMethodDb.toLowerCase()) {
+                        case "online":
+                            methodDisplay = "Online Banking";
+                            break;
+                        case "cash":
+                            methodDisplay = "Cash on Delivery";
+                            break;
+                        case "card":
+                        case "credit":
+                        case "debit":
+                            methodDisplay = "Credit/Debit Card";
+                            break;
+                        default:
+                            methodDisplay = paymentMethodDb;
+                    }
+                    order.setPaymentMethod(methodDisplay);
+                }
+
+                // Use the logged-in user's address as delivery address (if available)
+                if (user.getAddress() != null && !user.getAddress().isEmpty()) {
+                    order.setAddress(user.getAddress());
+                }
+
                 // Set tracking info if exists
                 if (rs.getObject("tracking_id") != null) {
                     OrderTracking tracking = new OrderTracking();
@@ -57,7 +109,7 @@ public class TrackingServlet extends HttpServlet {
                     tracking.setLastUpdated(rs.getTimestamp("last_updated"));
                     order.setTracking(tracking);
                 }
-                
+
                 orders.add(order);
             }
 

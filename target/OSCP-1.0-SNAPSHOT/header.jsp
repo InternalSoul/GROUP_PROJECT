@@ -29,6 +29,20 @@
         cartCount = (cart != null) ? cart.size() : 0;
     }
 %>
+<style>
+    .cart-count {
+        background: #1a1a1a;
+        color: #fff;
+        padding: 2px 8px;
+        font-size: 0.75em;
+        margin-left: 5px;
+        border-radius: 999px;
+    }
+    .user-name {
+        color: #888;
+        font-size: 0.85em;
+    }
+</style>
 <div class="top-bar">FREE SHIPPING ON ORDERS OVER $200</div>
 <nav class="navbar">
     <a href="index.jsp" class="logo">CLOTHING STORE</a>

@@ -88,7 +88,7 @@
         <div class="nav-links">
             <a href="sellerDashboard">Dashboard</a>
             <a href="sellerShop.jsp">My Shop</a>
-            <a href="products">View Store</a>
+            <a href="sellerStore.jsp?seller=<%= user.getUsername() %>">View Store</a>
             <a href="logout">Logout</a>
         </div>
     </nav>

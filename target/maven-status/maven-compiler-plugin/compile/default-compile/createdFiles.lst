@@ -1,15 +1,12 @@
-com\mycompany\oscp\model\DatabaseConnection.class
 com\mycompany\oscp\controller\ReviewServlet.class
 com\mycompany\oscp\controller\LoginServlet.class
 com\mycompany\oscp\controller\OrderHistoryServlet.class
 com\mycompany\oscp\controller\SellerDashboardServlet.class
-com\mycompany\oscp\controller\LogoutServlet.class
 com\mycompany\oscp\controller\UpdateOrderStatusServlet.class
 com\mycompany\oscp\model\Review.class
 com\mycompany\oscp\model\CartItem.class
 com\mycompany\oscp\controller\CartServlet.class
 com\mycompany\oscp\model\Payment.class
-com\mycompany\oscp\resources\JakartaEE10Resource.class
 com\mycompany\oscp\model\OnlineBanking.class
 com\mycompany\oscp\model\Cash.class
 com\mycompany\oscp\model\Customer.class
@@ -26,4 +23,3 @@ com\mycompany\oscp\controller\ProductDetailServlet.class
 com\mycompany\oscp\controller\ProductsServlet.class
 com\mycompany\oscp\JakartaRestConfiguration.class
 com\mycompany\oscp\controller\RegisterServlet.class
-com\mycompany\oscp\controller\TrackingServlet.class

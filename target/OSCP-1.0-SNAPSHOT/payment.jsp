@@ -25,6 +25,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
+        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
         .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
         .navbar .nav-links { display: flex; gap: 30px; }
@@ -64,15 +65,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="cart">Cart</a>
-            <a href="tracking">Track Order</a>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
     <div class="container">
         <div class="breadcrumbs">
             <a href="index.jsp">Home</a> / <a href="products">Shop</a> / <a href="cart">Cart</a> / <span style="opacity: 0.65;">Payment</span>
@@ -128,7 +121,24 @@
                 <div id="onlineFields" class="payment-fields">
                     <div class="form-group">
                         <label for="bankName">Bank Name</label>
-                        <input type="text" id="bankName" name="bankName" placeholder="Select your bank">
+                        <select id="bankName" name="bankName">
+                            <option value="">Select your bank</option>
+                            <option value="Maybank">Maybank</option>
+                            <option value="CIMB Bank">CIMB Bank</option>
+                            <option value="Public Bank">Public Bank</option>
+                            <option value="RHB Bank">RHB Bank</option>
+                            <option value="Hong Leong Bank">Hong Leong Bank</option>
+                            <option value="AmBank">AmBank</option>
+                            <option value="Bank Islam Malaysia">Bank Islam Malaysia</option>
+                            <option value="Bank Rakyat">Bank Rakyat</option>
+                            <option value="Alliance Bank">Alliance Bank</option>
+                            <option value="Affin Bank">Affin Bank</option>
+                            <option value="OCBC Bank Malaysia">OCBC Bank Malaysia</option>
+                            <option value="HSBC Bank Malaysia">HSBC Bank Malaysia</option>
+                            <option value="Standard Chartered Malaysia">Standard Chartered Malaysia</option>
+                            <option value="UOB Malaysia">UOB Malaysia</option>
+                            <option value="Bank Simpanan Nasional (BSN)">Bank Simpanan Nasional (BSN)</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="accountNumber">Account Number</label>
@@ -160,9 +170,9 @@
                 cardFields.querySelectorAll('input').forEach(input => {
                     input.removeAttribute('required');
                 });
-                onlineFields.querySelectorAll('input').forEach(input => {
-                    input.removeAttribute('required');
-                });
+                    onlineFields.querySelectorAll('input, select').forEach(field => {
+                        field.removeAttribute('required');
+                    });
 
                 // Show relevant fields
                 if (method === 'Card') {
@@ -172,8 +182,8 @@
                     });
                 } else if (method === 'Online') {
                     onlineFields.classList.add('active');
-                    onlineFields.querySelectorAll('input').forEach(input => {
-                        input.setAttribute('required', 'required');
+                    onlineFields.querySelectorAll('input, select').forEach(field => {
+                        field.setAttribute('required', 'required');
                     });
                 }
             });

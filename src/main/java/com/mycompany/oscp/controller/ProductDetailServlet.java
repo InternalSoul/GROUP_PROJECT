@@ -112,7 +112,7 @@ public class ProductDetailServlet extends HttpServlet {
                         review.setProductId(rs.getInt("product_id"));
                         review.setUserId(String.valueOf(rs.getInt("user_id")));
                         review.setUsername(rs.getString("username"));
-                        review.setRating(rs.getInt("rating"));
+                        review.setRating(rs.getDouble("rating"));
                         review.setComment(rs.getString("comment") != null ? rs.getString("comment") : "");
                         try {
                             review.setCreatedAt(rs.getTimestamp("review_date"));

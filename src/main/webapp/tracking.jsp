@@ -14,6 +14,12 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
+        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.6; }
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -192,7 +198,7 @@
             }
         %>
         
-        <a href="index.jsp" class="back-link">Back to Home</a>
+        <a href="orderHistory" class="back-link">Back to Home</a>
     </div>
 </body>
 </html>

@@ -96,7 +96,7 @@
         <div class="nav-links">
             <a href="sellerDashboard">Dashboard</a>
             <a href="sellerShop.jsp">My Shop</a>
-            <a href="products">View Store</a>
+            <a href="sellerStore.jsp?seller=<%= user.getUsername() %>">View Store</a>
             <a href="logout">Logout</a>
         </div>
     </nav>
@@ -236,7 +236,7 @@
             <h2>Quick Actions</h2>
             <div class="actions">
                 <a class="btn" href="sellerShop.jsp">Manage Products</a>
-                <a class="btn secondary" href="products">View Storefront</a>
+                <a class="btn secondary" href="sellerStore.jsp?seller=<%= user.getUsername() %>">View Storefront</a>
             </div>
         </div>
     </div>

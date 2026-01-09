@@ -77,6 +77,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
+        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
         .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
         .navbar .nav-links { display: flex; gap: 30px; }
@@ -90,10 +91,10 @@
         .form-group input[type="text"] { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; }
         .form-group textarea { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; min-height: 150px; resize: vertical; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; }
-        .rating-input { display: flex; gap: 10px; }
+        .rating-input { display: flex; gap: 6px; font-size: 1.8em; cursor: pointer; }
         .rating-input input[type="radio"] { display: none; }
-        .rating-input label { font-size: 1.8em; cursor: pointer; color: #ddd; transition: color 0.2s; }
-        .rating-input input[type="radio"]:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: #1a1a1a; }
+        .rating-input label { cursor: pointer; color: #ddd; transition: color 0.15s ease-in-out; }
+        .rating-input label.active { color: #facc15; }
         .submit-btn { width: 100%; padding: 18px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
         .submit-btn:hover { background: #333; }
         .back-link { display: block; text-align: center; margin-top: 25px; color: #888; text-decoration: none; font-size: 0.9em; }
@@ -104,15 +105,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">CLOTHING STORE</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="cart">Cart</a>
-            <a href="tracking">Track Order</a>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
     <div class="container">
         <h1>Write a Review</h1>
         <% if (errorMsg != null) { %>
@@ -134,17 +127,27 @@
                 </div>
                 <div class="form-group">
                     <label>Rating</label>
-                    <div class="rating-input">
-                        <input type="radio" name="rating" id="star5" value="5" required>
-                        <label for="star5">★</label>
-                        <input type="radio" name="rating" id="star4" value="4">
-                        <label for="star4">★</label>
-                        <input type="radio" name="rating" id="star3" value="3">
-                        <label for="star3">★</label>
-                        <input type="radio" name="rating" id="star2" value="2">
-                        <label for="star2">★</label>
-                        <input type="radio" name="rating" id="star1" value="1">
-                        <label for="star1">★</label>
+                    <div class="rating-input" data-rating-group="review-main">
+                        <input type="radio" name="rating" id="star5" value="5.0" required>
+                        <label for="star5" data-value="5.0">★</label>
+                        <input type="radio" name="rating" id="star4_5" value="4.5">
+                        <label for="star4_5" data-value="4.5">★</label>
+                        <input type="radio" name="rating" id="star4" value="4.0">
+                        <label for="star4" data-value="4.0">★</label>
+                        <input type="radio" name="rating" id="star3_5" value="3.5">
+                        <label for="star3_5" data-value="3.5">★</label>
+                        <input type="radio" name="rating" id="star3" value="3.0">
+                        <label for="star3" data-value="3.0">★</label>
+                        <input type="radio" name="rating" id="star2_5" value="2.5">
+                        <label for="star2_5" data-value="2.5">★</label>
+                        <input type="radio" name="rating" id="star2" value="2.0">
+                        <label for="star2" data-value="2.0">★</label>
+                        <input type="radio" name="rating" id="star1_5" value="1.5">
+                        <label for="star1_5" data-value="1.5">★</label>
+                        <input type="radio" name="rating" id="star1" value="1.0">
+                        <label for="star1" data-value="1.0">★</label>
+                        <input type="radio" name="rating" id="star0_5" value="0.5">
+                        <label for="star0_5" data-value="0.5">★</label>
                     </div>
                 </div>
                 <div class="form-group">
@@ -157,5 +160,38 @@
         </div>
     </div>
     <footer class="footer"><div class="footer-logo">CLOTHING STORE</div><p>© 2026 Clothing Store. All rights reserved.</p></footer>
+    <script>
+        (function() {
+            const group = document.querySelector('.rating-input[data-rating-group="review-main"]');
+            if (!group) return;
+
+            const labels = Array.from(group.querySelectorAll('label'));
+
+            function setActive(value) {
+                labels.forEach(label => {
+                    const v = parseFloat(label.dataset.value);
+                    label.classList.toggle('active', v <= value);
+                });
+            }
+
+            labels.forEach(label => {
+                const value = parseFloat(label.dataset.value);
+                label.addEventListener('mouseenter', () => setActive(value));
+                label.addEventListener('click', () => {
+                    const input = group.querySelector('input[name="rating"][value="' + value + '"]');
+                    if (input) {
+                        input.checked = true;
+                    }
+                    group.dataset.selected = value;
+                    setActive(value);
+                });
+            });
+
+            group.addEventListener('mouseleave', () => {
+                const selected = parseFloat(group.dataset.selected || '0');
+                setActive(selected);
+            });
+        })();
+    </script>
 </body>
 </html>

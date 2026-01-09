@@ -109,7 +109,9 @@ public class UpdateOrderStatusServlet extends HttpServlet {
             req.setAttribute("error", "Invalid order ID");
         }
 
-        req.getRequestDispatcher("/sellerDashboard").forward(req, res);
+        // Use a redirect so the browser URL is sellerDashboard and
+        // refreshing the page does not resubmit the status-update POST.
+        res.sendRedirect(req.getContextPath() + "/sellerDashboard");
     }
 
     private String getDefaultTrackingLocation(String status) {

@@ -36,6 +36,17 @@
     if (product.getStockQuantity() > 0) specs.add("Stock: " + product.getStockQuantity() + " pcs available");
     if (product.getCreatedAt() != null) specs.add("Listed on: " + product.getCreatedAt().toLocalDateTime().toLocalDate());
 
+    // Find this user's review (if any)
+    Review myReview = null;
+    if (reviews != null && user != null) {
+        for (Review r : reviews) {
+            if (r.getUsername() != null && r.getUsername().equals(user.getUsername())) {
+                myReview = r;
+                break;
+            }
+        }
+    }
+
     // Variant data (per-seller availability for size/color) built in servlet.
     List<Product> variants = (List<Product>) request.getAttribute("variants");
     Set<String> variantSizes = new LinkedHashSet<>();
@@ -124,6 +135,21 @@
         .review { border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; background: #f8fafc; }
         .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: #475569; font-size: 0.9em; }
         .review-rating { color: #f59e0b; font-weight: 700; }
+        .rating-input-inline { display: flex; gap: 6px; font-size: 1.6em; cursor: pointer; user-select: none; }
+        .rating-input-inline .star {
+            position: relative;
+            display: inline-block;
+            color: #e5e7eb; /* base grey star */
+        }
+        .rating-input-inline .star::before {
+            content: '★';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: var(--fill, 0%);
+            overflow: hidden;
+            color: #facc15; /* yellow fill */
+        }
         .review-comment { color: #0f172a; line-height: 1.5; }
         .empty { padding: 18px; border: 1px dashed #cbd5e1; border-radius: 10px; color: #475569; background: #f8fafc; }
         .variant-pill { padding: 8px 12px; border-radius: 999px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.9em; cursor: pointer; }
@@ -236,7 +262,19 @@
                         <div class="review">
                             <div class="review-header">
                                 <span><%= r.getUsername() != null && !r.getUsername().isEmpty() ? r.getUsername() : "Verified buyer" %></span>
-                                <span class="review-rating">★ <%= r.getRating() %></span>
+                                <span>
+                                    <span class="review-rating">★ <%= r.getRating() %></span>
+                                    <% boolean isMine = (myReview != null && myReview.getId() == r.getId()); %>
+                                    <% if (isMine) { %>
+                                        <a href="#write-review" style="margin-left:10px; font-size:0.8em; color:#0f172a; text-decoration:underline;">Edit</a>
+                                        <form action="review" method="post" style="display:inline; margin-left:6px;">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="productId" value="<%= product.getId() %>">
+                                            <input type="hidden" name="reviewId" value="<%= r.getId() %>">
+                                            <button type="submit" style="background:none; border:none; color:#b91c1c; font-size:0.8em; cursor:pointer;">Delete</button>
+                                        </form>
+                                    <% } %>
+                                </span>
                             </div>
                             <% if (r.getCreatedAt() != null) { %>
                                 <div style="color:#94a3b8; font-size:0.85em; margin-bottom:6px;">Posted on <%= r.getCreatedAt().toLocalDateTime().toLocalDate() %></div>
@@ -246,6 +284,36 @@
                     <% } %>
                 </div>
             <% } %>
+
+            <!-- Inline review form for this product -->
+            <div id="write-review" style="margin-top:24px; padding-top:18px; border-top:1px solid #e2e8f0;">
+                <h3 style="font-family:'Cormorant Garamond', serif; font-size:1.4em; margin-bottom:8px;"><%= (myReview != null) ? "Edit Your Review" : "Write a Review" %></h3>
+                <p style="color:#64748b; font-size:0.9em; margin-bottom:14px;"><%= (myReview != null) ? "Update your thoughts about this piece." : "Share your experience with this piece." %></p>
+                <form action="review" method="post" style="display:flex; flex-direction:column; gap:14px; max-width:480px;">
+                    <input type="hidden" name="productId" value="<%= product.getId() %>">
+                    <% if (myReview != null) { %>
+                        <input type="hidden" name="action" value="update">
+                        <input type="hidden" name="reviewId" value="<%= myReview.getId() %>">
+                    <% } %>
+                    <div>
+                        <label style="display:block; font-size:0.8em; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#64748b; margin-bottom:6px;">Rating</label>
+                        <div class="rating-input-inline" data-rating-group="product-inline">
+                            <input type="hidden" name="rating" id="ratingValue" value="<%= (myReview != null) ? myReview.getRating() : "" %>">
+                            <span class="star" data-index="1">★</span>
+                            <span class="star" data-index="2">★</span>
+                            <span class="star" data-index="3">★</span>
+                            <span class="star" data-index="4">★</span>
+                            <span class="star" data-index="5">★</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="detailComment" style="display:block; font-size:0.8em; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#64748b; margin-bottom:6px;">Your Review</label>
+                        <textarea id="detailComment" name="comment" rows="3" placeholder="Tell others how this product fits, feels, and looks." style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid #e2e8f0; font-family:'Manrope', sans-serif; font-size:0.95em; resize:vertical;" required><%= (myReview != null && myReview.getComment() != null) ? myReview.getComment() : "" %></textarea>
+                    </div>
+                    <button type="submit" style="align-self:flex-start; padding:10px 22px; border-radius:999px; border:none; background:#0f172a; color:#fff; font-size:0.8em; font-weight:600; letter-spacing:1px; text-transform:uppercase; cursor:pointer;"><%= (myReview != null) ? "Update Review" : "Submit Review" %></button>
+                </form>
+                <p style="color:#9ca3af; font-size:0.8em; margin-top:8px;">Only customers who purchased this item can post a review.</p>
+            </div>
         </div>
     </div>
 
@@ -366,8 +434,7 @@
             </form>
         </div>
     </div>
-</body>
-<script>
+    <script>
     (function() {
         const overlay = document.getElementById('addToCartOverlay');
         const openBtn = document.getElementById('openAddToCart');
@@ -541,6 +608,69 @@
         updateVariantSelectionClasses();
         applyCurrentVariant();
         updatePrices();
+
+        // Inline rating stars for product review (5 stars, half-step when clicking left/right side)
+        const ratingGroup = document.querySelector('.rating-input-inline[data-rating-group="product-inline"]');
+        if (ratingGroup) {
+            const stars = Array.from(ratingGroup.querySelectorAll('.star'));
+            const ratingInput = document.getElementById('ratingValue');
+            let selectedValue = 0;
+
+            function setActiveRating(value) {
+                stars.forEach(star => {
+                    const idx = parseInt(star.dataset.index, 10);
+                    let fill = 0;
+                    if (value >= idx) {
+                        fill = 100; // full star
+                    } else if (value >= idx - 0.5) {
+                        fill = 50; // half star
+                    }
+                    star.style.setProperty('--fill', fill + '%');
+                });
+            }
+
+            function computeValueFromEvent(star, event) {
+                const rect = star.getBoundingClientRect();
+                const halfway = rect.left + rect.width / 2;
+                const idx = parseInt(star.dataset.index, 10);
+                let value = idx;
+                if (event.clientX < halfway) {
+                    value = idx - 0.5;
+                }
+                if (value < 0.5) value = 0.5;
+                return value;
+            }
+
+            stars.forEach(star => {
+                star.addEventListener('mousemove', (e) => {
+                    const value = computeValueFromEvent(star, e);
+                    setActiveRating(value);
+                });
+                star.addEventListener('click', (e) => {
+                    const value = computeValueFromEvent(star, e);
+                    selectedValue = value;
+                    if (ratingInput) {
+                        ratingInput.value = value.toString();
+                    }
+                    ratingGroup.dataset.selected = value;
+                    setActiveRating(value);
+                });
+            });
+
+            ratingGroup.addEventListener('mouseleave', () => {
+                setActiveRating(selectedValue || 0);
+            });
+
+            // Initialize stars if a rating is already present (editing existing review)
+            if (ratingInput && ratingInput.value) {
+                const initial = parseFloat(ratingInput.value);
+                if (!isNaN(initial) && initial > 0) {
+                    selectedValue = initial;
+                    setActiveRating(initial);
+                }
+            }
+        }
     })();
-</script>
+    </script>
+</body>
 </html>

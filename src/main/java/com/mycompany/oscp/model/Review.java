@@ -7,7 +7,7 @@ public class Review {
     private int productId;
     private String userId;
     private String username;
-    private int rating;
+    private double rating;
     private String comment;
     private Timestamp createdAt;
 
@@ -16,12 +16,12 @@ public class Review {
         this.productId = 0;
         this.userId = "";
         this.username = "";
-        this.rating = 0;
+        this.rating = 0.0;
         this.comment = "";
         this.createdAt = null;
     }
 
-    public Review(int rating, String comment) {
+    public Review(double rating, String comment) {
         this();
         this.rating = rating;
         this.comment = comment;
@@ -44,7 +44,7 @@ public class Review {
         return username;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
     }
 
@@ -73,7 +73,7 @@ public class Review {
         this.username = username;
     }
 
-    public void setRating(int rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 

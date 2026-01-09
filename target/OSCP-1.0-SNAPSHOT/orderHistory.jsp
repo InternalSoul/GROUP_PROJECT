@@ -147,7 +147,7 @@
                                            for (OrderDetails od : o.getOrderDetails()) {
                                                Product p = od.getProduct();
                                                if (p != null) { %>
-                                                   <a href="review.jsp?productId=<%= p.getId() %>" class="review-btn">Review <%= p.getName() %></a>
+                                                   <a href="product?id=<%= p.getId() %>#write-review" class="review-btn">Review <%= p.getName() %></a>
                                     <%         }
                                            }
                                        } %>

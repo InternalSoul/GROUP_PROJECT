@@ -22,9 +22,45 @@ public class PaymentServlet extends HttpServlet {
         }
 
         Order order = (Order) session.getAttribute("order");
+        Integer orderDbId = (Integer) session.getAttribute("orderDbId");
         if (order == null) {
-            res.sendRedirect(req.getContextPath() + "/cart");
-            return;
+            // Attempt to reload order from DB if we have an orderDbId
+            if (orderDbId != null && orderDbId > 0) {
+                try (Connection conn = DatabaseConnection.getConnection();
+                        PreparedStatement ps = conn.prepareStatement(
+                                "SELECT user_username, total_amount, status, payment_method FROM orders WHERE id = ?")) {
+                    ps.setInt(1, orderDbId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            order = new Order();
+                            order.setId(orderDbId);
+                            order.setStatus(rs.getString("status"));
+                            order.setPaymentMethod(rs.getString("payment_method"));
+
+                            // Attach a minimal User object with username if desired
+                            String username = rs.getString("user_username");
+                            if (username != null) {
+                                User u = new User();
+                                u.setUsername(username);
+                                order.setUser(u);
+                            }
+
+                            // Store back in session for later use
+                            session.setAttribute("order", order);
+                        } else {
+                            res.sendRedirect(req.getContextPath() + "/cart");
+                            return;
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    res.sendRedirect(req.getContextPath() + "/cart");
+                    return;
+                }
+            } else {
+                res.sendRedirect(req.getContextPath() + "/cart");
+                return;
+            }
         }
 
         String method = req.getParameter("method");
@@ -42,9 +78,9 @@ public class PaymentServlet extends HttpServlet {
             String cvv = req.getParameter("cvv");
 
             if (cardNumber == null || cardNumber.isEmpty() ||
-                cardName == null || cardName.isEmpty() ||
-                expiryDate == null || expiryDate.isEmpty() ||
-                cvv == null || cvv.isEmpty()) {
+                    cardName == null || cardName.isEmpty() ||
+                    expiryDate == null || expiryDate.isEmpty() ||
+                    cvv == null || cvv.isEmpty()) {
                 req.setAttribute("error", "Please fill in all card details");
                 req.getRequestDispatcher("/payment.jsp").forward(req, res);
                 return;
@@ -68,7 +104,7 @@ public class PaymentServlet extends HttpServlet {
             String accountNumber = req.getParameter("accountNumber");
 
             if (bankName == null || bankName.isEmpty() ||
-                accountNumber == null || accountNumber.isEmpty()) {
+                    accountNumber == null || accountNumber.isEmpty()) {
                 req.setAttribute("error", "Please provide bank details");
                 req.getRequestDispatcher("/payment.jsp").forward(req, res);
                 return;
@@ -103,15 +139,52 @@ public class PaymentServlet extends HttpServlet {
         // Update in-memory order status
         order.setStatus(payment.getStatus());
 
+        // Map to payments table values
+        String paymentMethodDb = "cash";
+        if ("Online".equalsIgnoreCase(method) || "Card".equalsIgnoreCase(method)) {
+            paymentMethodDb = "online";
+        }
+
+        String paymentStatusDb;
+        if ("Completed".equalsIgnoreCase(payment.getStatus())) {
+            paymentStatusDb = "completed";
+        } else if ("Failed".equalsIgnoreCase(payment.getStatus())) {
+            paymentStatusDb = "failed";
+        } else {
+            paymentStatusDb = "pending";
+        }
+
         // If the order was already created in DB during checkout,
         // just update its status instead of inserting a new row.
-        Integer orderDbId = (Integer) session.getAttribute("orderDbId");
         if (orderDbId != null && orderDbId > 0) {
             try (Connection conn = DatabaseConnection.getConnection();
-                    PreparedStatement ps = conn.prepareStatement("UPDATE orders SET status = ? WHERE id = ?")) {
-                ps.setString(1, order.getStatus());
-                ps.setInt(2, orderDbId);
-                ps.executeUpdate();
+                    PreparedStatement psOrder = conn
+                            .prepareStatement("UPDATE orders SET status = ?, payment_method = ? WHERE id = ?");
+                    PreparedStatement psPayment = conn.prepareStatement(
+                            "INSERT INTO payments (order_id, payment_method, amount, status, paid_at) VALUES (?,?,?,?,?)",
+                            Statement.RETURN_GENERATED_KEYS)) {
+
+                conn.setAutoCommit(false);
+
+                // Update order row
+                psOrder.setString(1, order.getStatus());
+                psOrder.setString(2, paymentMethodDb);
+                psOrder.setInt(3, orderDbId);
+                psOrder.executeUpdate();
+
+                // Insert into payments table
+                psPayment.setInt(1, orderDbId);
+                psPayment.setString(2, paymentMethodDb);
+                psPayment.setDouble(3, order.calcTotal());
+                psPayment.setString(4, paymentStatusDb);
+                if ("completed".equals(paymentStatusDb)) {
+                    psPayment.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+                } else {
+                    psPayment.setTimestamp(5, null);
+                }
+                psPayment.executeUpdate();
+
+                conn.commit();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -123,7 +196,7 @@ public class PaymentServlet extends HttpServlet {
             try (Connection conn = DatabaseConnection.getConnection()) {
                 conn.setAutoCommit(false);
 
-                String insertOrderSql = "INSERT INTO orders (user_username, total_amount, status, created_at) VALUES (?,?,?,NOW())";
+                String insertOrderSql = "INSERT INTO orders (user_username, total_amount, status, payment_method, created_at) VALUES (?,?,?,?,NOW())";
                 int orderId = 0;
                 try (PreparedStatement ps = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
                     User user = (User) session.getAttribute("user");
@@ -132,11 +205,29 @@ public class PaymentServlet extends HttpServlet {
                     ps.setString(1, username);
                     ps.setDouble(2, order.calcTotal());
                     ps.setString(3, order.getStatus());
+                    ps.setString(4, paymentMethodDb);
                     ps.executeUpdate();
                     try (ResultSet rs = ps.getGeneratedKeys()) {
                         if (rs.next()) {
                             orderId = rs.getInt(1);
                         }
+                    }
+                }
+
+                // Insert into payments table for this order
+                if (orderId > 0) {
+                    String insertPaymentSql = "INSERT INTO payments (order_id, payment_method, amount, status, paid_at) VALUES (?,?,?,?,?)";
+                    try (PreparedStatement psPay = conn.prepareStatement(insertPaymentSql)) {
+                        psPay.setInt(1, orderId);
+                        psPay.setString(2, paymentMethodDb);
+                        psPay.setDouble(3, order.calcTotal());
+                        psPay.setString(4, paymentStatusDb);
+                        if ("completed".equals(paymentStatusDb)) {
+                            psPay.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+                        } else {
+                            psPay.setTimestamp(5, null);
+                        }
+                        psPay.executeUpdate();
                     }
                 }
 

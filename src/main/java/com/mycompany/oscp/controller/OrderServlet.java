@@ -1,4 +1,5 @@
 package com.mycompany.oscp.controller;
+
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.WebServlet;
@@ -34,6 +35,18 @@ public class OrderServlet extends HttpServlet {
         if (paymentMethod == null || paymentMethod.isEmpty()) {
             res.sendRedirect(req.getContextPath() + "/payment.jsp");
             return;
+        }
+
+        // Map UI payment method to DB-friendly codes used in `payments` table
+        // (allowed values: 'online', 'cash') and derive payment status.
+        String paymentMethodDb = "cash";
+        if ("Online".equalsIgnoreCase(paymentMethod) || "Card".equalsIgnoreCase(paymentMethod)) {
+            paymentMethodDb = "online";
+        }
+
+        String paymentStatusDb = "pending";
+        if ("Online".equalsIgnoreCase(paymentMethod) || "Card".equalsIgnoreCase(paymentMethod)) {
+            paymentStatusDb = "completed";
         }
 
         try {
@@ -78,18 +91,18 @@ public class OrderServlet extends HttpServlet {
                     for (Map.Entry<Integer, Integer> entry : quantityById.entrySet()) {
                         int productId = entry.getKey();
                         int requestedQty = entry.getValue();
-                        
+
                         psStock.setInt(1, productId);
                         try (ResultSet rsStock = psStock.executeQuery()) {
                             if (rsStock.next()) {
                                 int availableStock = rsStock.getInt("stock_quantity");
                                 boolean inStock = rsStock.getBoolean("in_stock");
                                 String productName = rsStock.getString("name");
-                                
+
                                 if (!inStock || availableStock < requestedQty) {
                                     conn.rollback();
-                                    req.setAttribute("error", "Insufficient stock for " + productName + 
-                                                             ". Only " + availableStock + " available.");
+                                    req.setAttribute("error", "Insufficient stock for " + productName +
+                                            ". Only " + availableStock + " available.");
                                     req.getRequestDispatcher("/cart").forward(req, res);
                                     return;
                                 }
@@ -144,6 +157,24 @@ public class OrderServlet extends HttpServlet {
                     }
                 }
 
+                // Create payment record linked to this order so that tracking and
+                // reporting can always see a non-null payment_method.
+                if (dbOrderId > 0) {
+                    String insertPaymentSql = "INSERT INTO payments (order_id, payment_method, amount, status, paid_at) VALUES (?,?,?,?,?)";
+                    try (PreparedStatement psPay = conn.prepareStatement(insertPaymentSql)) {
+                        psPay.setInt(1, dbOrderId);
+                        psPay.setString(2, paymentMethodDb);
+                        psPay.setDouble(3, total);
+                        psPay.setString(4, paymentStatusDb);
+                        if ("completed".equalsIgnoreCase(paymentStatusDb)) {
+                            psPay.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+                        } else {
+                            psPay.setTimestamp(5, null);
+                        }
+                        psPay.executeUpdate();
+                    }
+                }
+
                 // After creating the order, clear the user's cart items from carts/cart_items
                 // First get cart_id for the customer
                 int cartId = 0;
@@ -156,7 +187,7 @@ public class OrderServlet extends HttpServlet {
                         }
                     }
                 }
-                
+
                 // Clear cart items if cart exists
                 if (cartId > 0) {
                     String clearSql = "DELETE FROM cart_items WHERE cart_id = ?";
@@ -165,7 +196,7 @@ public class OrderServlet extends HttpServlet {
                         psClear.executeUpdate();
                     }
                 }
-                
+
                 // Create initial order tracking
                 String trackingSql = "INSERT INTO order_tracking (order_id, current_location, estimated_delivery, last_updated) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
                 try (PreparedStatement psTrack = conn.prepareStatement(trackingSql)) {
