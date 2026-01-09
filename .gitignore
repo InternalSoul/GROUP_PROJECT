@@ -1,0 +1,13 @@
+
+
+# Ignore IDE files
+*.iml
+.vscode/
+.idea/
+
+# Ignore temporary files
+*.log
+*.tmp
+.DS_Store
+
+
