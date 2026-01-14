@@ -2,43 +2,42 @@ package com.mycompany.oscp.model;
 
 public class OnlineBanking extends Payment {
     private String bankName;
-    private String accountNumber;
+    private String number;
 
     public OnlineBanking() {
-        super("Online Banking", 0.0, "Pending");
+        super();
         this.bankName = "";
-        this.accountNumber = "";
+        this.number = "";
     }
 
-    public OnlineBanking(double amount, String bankName, String accountNumber) {
-        super("Online Banking", amount, "Pending");
+    public OnlineBanking(String paymentMethod, double amount, String status, String bankName, String number) {
+        super(paymentMethod, amount, status);
         this.bankName = bankName;
-        this.accountNumber = accountNumber;
+        this.number = number;
     }
 
     public String getBankName() {
         return bankName;
     }
 
-    public String getAccountNumber() {
-        return accountNumber;
+    public String getNumber() {
+        return number;
     }
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
     }
 
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
+    public void setNumber(String number) {
+        this.number = number;
     }
 
     @Override
     public void processPayment() {
-        setStatus("Completed");
-        System.out.println("Processing online banking payment of RM " + getAmount());
+        System.out.println("Processing online payment");
     }
 
     public void authorize() {
-        System.out.println("Payment authorized for bank: " + bankName);
+        System.out.println("Payment authorized");
     }
 }

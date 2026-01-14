@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="com.mycompany.oscp.model.*" %>
 <%
-    if (session.getAttribute("user") == null) {
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
         response.sendRedirect("login");
         return;
     }
@@ -12,15 +14,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmed - OCSP</title>
+    <title>Order Confirmed - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; display: flex; flex-direction: column; }
+        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
         .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
-        .navbar .nav-links { display: flex; gap: 30px; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+        .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
+        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.6; }
+        .cart-count { background: #1a1a1a; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
+        .user-name { color: #888; font-size: 0.85em; }
         .main-content { flex: 1; display: flex; justify-content: center; align-items: center; padding: 60px 30px; }
         .success-box { background: #fff; border: 1px solid #eee; padding: 80px 60px; text-align: center; max-width: 550px; }
         .success-icon { font-size: 4em; margin-bottom: 30px; }
@@ -39,14 +45,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">OCSP</a>
-        <div class="nav-links">
-            <a href="products">Shop</a>
-            <a href="tracking">Track Order</a>
-            <a href="logout">Logout</a>
-        </div>
-    </nav>
+    <jsp:include page="header.jsp" />
     <div class="main-content">
         <div class="success-box">
             <div class="success-icon">✓</div>
@@ -60,6 +59,6 @@
             <a href="tracking" class="btn btn-outline">Track Order</a>
         </div>
     </div>
-    <footer class="footer"><div class="footer-logo">OCSP</div><p>© 2025 OCSP. All rights reserved.</p></footer>
+    <footer class="footer"><div class="footer-logo">DORMDEALZ</div><p>© 2026 DormDealz. All rights reserved.</p></footer>
 </body>
 </html>

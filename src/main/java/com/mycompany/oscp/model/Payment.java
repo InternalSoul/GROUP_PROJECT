@@ -1,5 +1,4 @@
 package com.mycompany.oscp.model;
-
 public abstract class Payment {
     private String paymentMethod;
     private double amount;
@@ -17,7 +16,6 @@ public abstract class Payment {
         this.status = status;
     }
 
-    // Getters
     public String getPaymentMethod() {
         return paymentMethod;
     }
@@ -30,7 +28,6 @@ public abstract class Payment {
         return status;
     }
 
-    // Setters
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }

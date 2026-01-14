@@ -1,35 +1,35 @@
-<%@ page import="java.util.*, java.sql.*, java.util.Base64, com.mycompany.oscp.model.*" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="java.util.*, java.sql.*, com.mycompany.oscp.model.*" %>
 <%
     User user = (User) session.getAttribute("user");
-    if (user == null || !"seller".equalsIgnoreCase(user.getRole())) {
+    if (user == null || !"seller".equals(user.getRole())) {
         response.sendRedirect("login");
         return;
     }
-    
-    // Fetch products from database
+
+    // Fetch only the current seller's products
     List<Product> products = new ArrayList<>();
-    try (Connection conn = DatabaseConnection.getConnection()) {
-        String sql = "SELECT * FROM PRODUCTS";
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+    String productSql = "SELECT product_id, name, price, image, product_type, size, color, brand, stock_quantity FROM products WHERE seller_username = ? ORDER BY product_id DESC";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(productSql)) {
+        stmt.setString(1, user.getUsername());
+        try (ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Product p = new Product();
-                p.setId(rs.getInt("PRODUCT_ID"));
-                p.setName(rs.getString("NAME"));
-                p.setPrice(rs.getDouble("PRICE"));
+                p.setId(rs.getInt("product_id"));
+                p.setName(rs.getString("name"));
+                p.setPrice(rs.getDouble("price"));
                 try {
-                    Blob imageBlob = rs.getBlob("IMAGE");
-                    if (imageBlob != null && imageBlob.length() > 0) {
-                        byte[] imageBytes = imageBlob.getBytes(1, (int) imageBlob.length());
-                        String base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(imageBytes);
-                        p.setImage(base64Image);
-                    } else {
-                        p.setImage("");
-                    }
+                    String image = rs.getString("image");
+                    p.setImage(image != null ? image : "");
                 } catch (SQLException e) {
                     p.setImage("");
                 }
+                p.setProductType(rs.getString("product_type") != null ? rs.getString("product_type") : "");
+                p.setSize(rs.getString("size") != null ? rs.getString("size") : "");
+                p.setColor(rs.getString("color") != null ? rs.getString("color") : "");
+                p.setBrand(rs.getString("brand") != null ? rs.getString("brand") : "");
+                p.setStockQuantity(rs.getInt("stock_quantity"));
                 products.add(p);
             }
         }
@@ -42,307 +42,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Products - OCSP</title>
+    <title>Seller Shop - Clothing Store</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #fafafa;
-            color: #1a1a1a;
-            min-height: 100vh;
-        }
-        .top-bar {
-            background: #1a1a1a;
-            color: #fff;
-            text-align: center;
-            padding: 10px;
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-        .navbar {
-            background: #fff;
-            padding: 20px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-        }
-        .navbar .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8em;
-            font-weight: 700;
-            color: #1a1a1a;
-            text-decoration: none;
-            letter-spacing: 2px;
-        }
-        .navbar .nav-links {
-            display: flex;
-            gap: 35px;
-            align-items: center;
-        }
-        .navbar a {
-            color: #1a1a1a;
-            text-decoration: none;
-            font-size: 13px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: opacity 0.3s;
-        }
-        .navbar a:hover {
-            opacity: 0.6;
-        }
-        .navbar .user-info {
-            font-size: 13px;
-            color: #666;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 50px 30px;
-        }
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 50px;
-        }
-        .page-header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5em;
-            font-weight: 400;
-            letter-spacing: 2px;
-        }
-        .product-count {
-            color: #888;
-            font-size: 14px;
-            letter-spacing: 1px;
-        }
-        .section-card {
-            background: #fff;
-            border: 1px solid #eee;
-            padding: 40px;
-            margin-bottom: 30px;
-        }
-        .section-card h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5em;
-            font-weight: 400;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .add-product-form {
-            display: grid;
-            grid-template-columns: 2fr 1fr 2fr auto;
-            gap: 20px;
-            align-items: end;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group label {
-            margin-bottom: 10px;
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #666;
-        }
-        .form-group input[type="text"],
-        .form-group input[type="number"] {
-            padding: 15px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.3s;
-        }
-        .form-group input[type="file"] {
-            padding: 12px;
-            border: 1px dashed #ddd;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            background: #fafafa;
-            cursor: pointer;
-        }
-        .form-group input[type="file"]:hover {
-            border-color: #1a1a1a;
-            background: #f5f5f5;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #1a1a1a;
-        }
-        .form-group input::placeholder {
-            color: #aaa;
-        }
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        .btn-primary {
-            background: #1a1a1a;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: #333;
-        }
-        .btn-danger {
-            background: #fff;
-            color: #c00;
-            border: 1px solid #c00;
-            padding: 10px 20px;
-            font-size: 11px;
-        }
-        .btn-danger:hover {
-            background: #c00;
-            color: #fff;
-        }
-        .products-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .products-table th,
-        .products-table td {
-            padding: 20px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .products-table th {
-            font-size: 11px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #888;
-            font-weight: 500;
-            background: #fafafa;
-        }
-        .products-table tr:hover {
-            background: #fafafa;
-        }
-        .product-name {
-            font-weight: 500;
-            color: #1a1a1a;
-        }
-        .product-price {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1em;
-        }
-        .product-image {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            background: #f5f5f5;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-            color: #666;
-        }
-        .empty-state-icon {
-            font-size: 3em;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-        .empty-state h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5em;
-            font-weight: 400;
-            margin-bottom: 10px;
-            color: #1a1a1a;
-        }
-        .empty-state p {
-            font-size: 14px;
-            color: #888;
-        }
-        .footer {
-            background: #1a1a1a;
-            color: #fff;
-            padding: 50px;
-            text-align: center;
-            margin-top: 50px;
-        }
-        .footer-logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5em;
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-        }
-        .footer p {
-            font-size: 12px;
-            color: #888;
-            letter-spacing: 1px;
-        }
-        @media (max-width: 768px) {
-            .add-product-form {
-                grid-template-columns: 1fr;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        .navbar .nav-links { display: flex; gap: 30px; }
+        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 60px 30px; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; }
+        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
+        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
+        .add-btn:hover { background: #333; }
+        .products-section { margin-top: 0; }
+        .products-table { background: #fff; border: 1px solid #eee; width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
+        .products-table th { background: #f5f5f5; padding: 18px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #eee; }
+        .products-table td { padding: 18px; border-bottom: 1px solid #eee; }
+        .products-table tbody tr { opacity: 0; animation: fadeInRow 0.5s ease-out forwards; transition: background 0.2s ease; }
+        .products-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+        .products-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+        .products-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+        .products-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+        .products-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .products-table tbody tr:hover { background: #fafafa; }
+        .products-table tr:last-child td { border-bottom: none; }
+        .product-image-cell { width: 80px; height: 80px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 1.5em; color: #ddd; overflow: hidden; }
+        .product-image-cell img { max-width: 100%; max-height: 100%; object-fit: cover; }
+        .edit-btn { padding: 10px 20px; background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; display: inline-block; }
+        .edit-btn:hover { background: #1a1a1a; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .delete-btn { padding: 10px 20px; background: transparent; color: #d32f2f; border: 1px solid #d32f2f; font-size: 0.75em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .delete-btn:hover { background: #d32f2f; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2); }
+        .no-products { text-align: center; padding: 60px; color: #888; background: #fff; border: 1px solid #eee; }
+        .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
+        .footer p { color: #666; font-size: 0.8em; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        Product Management — Add, Edit, Remove Products
-    </div>
-
     <nav class="navbar">
-        <a href="index.jsp" class="logo">OCSP</a>
+        <a href="index.jsp" class="logo">CLOTHING STORE</a>
         <div class="nav-links">
-            <a href="sellerDashboard.jsp">Dashboard</a>
-            <a href="sellerShop.jsp">My Products</a>
-            <a href="products">View Store</a>
-            <span class="user-info"><%= user.getUsername() %></span>
+            <a href="sellerDashboard">Dashboard</a>
+            <a href="sellerShop.jsp">My Shop</a>
+            <a href="sellerStore.jsp?seller=<%= user.getUsername() %>">View Store</a>
             <a href="logout">Logout</a>
         </div>
     </nav>
-
     <div class="container">
-        <div class="page-header">
-            <h1>My Products</h1>
-            <span class="product-count"><%= products.size() %> Products</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px;">
+            <h1 style="margin-bottom: 0;">Product Inventory</h1>
+            <a href="addProduct.jsp" class="add-btn" style="text-decoration: none; display: inline-block;">Add New Product</a>
         </div>
-
-        <div class="section-card">
-            <h2>Add New Product</h2>
-            <form action="${pageContext.request.contextPath}/products" method="post" enctype="multipart/form-data" class="add-product-form">
-                <input type="hidden" name="action" value="add">
-                <div class="form-group">
-                    <label for="name">Product Name</label>
-                    <input type="text" id="name" name="name" placeholder="e.g., Cotton T-Shirt" required>
-                </div>
-                <div class="form-group">
-                    <label for="price">Price (RM)</label>
-                    <input type="number" id="price" name="price" step="0.01" min="0" placeholder="49.90" required>
-                </div>
-                <div class="form-group">
-                    <label for="image">Product Image</label>
-                    <input type="file" id="image" name="image" accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-primary">Add Product</button>
-            </form>
-        </div>
-
-        <div class="section-card">
-            <h2>Product Inventory</h2>
-            
+        <div class="products-section">
             <% if (products.isEmpty()) { %>
-                <div class="empty-state">
-                    <div class="empty-state-icon">📦</div>
-                    <h3>No Products Yet</h3>
-                    <p>Add your first product using the form above.</p>
+                <div class="no-products">
+                    <p>No products yet. Add your first product above!</p>
                 </div>
             <% } else { %>
                 <table class="products-table">
@@ -350,7 +108,13 @@
                         <tr>
                             <th>Image</th>
                             <th>Product Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Color</th>
+                            <th>Brand</th>
                             <th>Price</th>
+                            <th>Stock</th>
+                            <th>Links</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -358,19 +122,28 @@
                         <% for (Product p : products) { %>
                             <tr>
                                 <td>
-                                    <% if (p.getImage() != null && !p.getImage().isEmpty()) { %>
-                                        <img src="<%= p.getImage() %>" alt="<%= p.getName() %>" class="product-image">
-                                    <% } else { %>
-                                        <div class="product-image" style="display: flex; align-items: center; justify-content: center; color: #aaa;">📷</div>
-                                    <% } %>
+                                    <div class="product-image-cell">
+                                        <% if (p.getImage() != null && !p.getImage().isEmpty()) { %>
+                                            <img src="<%= p.getImage() %>" alt="<%= p.getName() %>">
+                                        <% } else { %>
+                                            ◇
+                                        <% } %>
+                                    </div>
                                 </td>
-                                <td class="product-name"><%= p.getName() %></td>
-                                <td class="product-price">RM <%= String.format("%.2f", p.getPrice()) %></td>
-                                <td>
-                                    <form action="products" method="post" style="display: inline;">
+                                <td><%= p.getName() %></td>
+                                <td><%= p.getProductType() %></td>
+                                <td><%= p.getSize() %></td>
+                                <td><%= p.getColor() %></td>
+                                <td><%= p.getBrand() %></td>
+                                <td>$<%= String.format("%.2f", p.getPrice()) %></td>
+                                <td><%= p.getStockQuantity() %></td>
+                                <td><a href="product?id=<%= p.getId() %>" style="text-decoration:none; color:#1a1a1a;">View</a></td>
+                                <td style="display:flex; gap:10px;">
+                                    <a href="editProduct.jsp?id=<%= p.getId() %>" class="edit-btn">Edit</a>
+                                    <form action="products" method="post" style="display:inline;">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<%= p.getId() %>">
-                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Remove</button>
+                                        <button type="submit" class="delete-btn" onclick="return confirm('Delete this product?')">Delete</button>
                                     </form>
                                 </td>
                             </tr>
@@ -380,10 +153,6 @@
             <% } %>
         </div>
     </div>
-
-    <footer class="footer">
-        <div class="footer-logo">OCSP</div>
-        <p>© 2024 Online Clothing Shopping Platform. All Rights Reserved.</p>
-    </footer>
+    <footer class="footer"><div class="footer-logo">CLOTHING STORE</div><p>© 2026 Clothing Store. All rights reserved.</p></footer>
 </body>
 </html>

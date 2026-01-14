@@ -3,15 +3,14 @@ package com.mycompany.oscp.model;
 public class Seller extends User {
     private String shopName;
 
-    public Seller() {
-        super();
-        setRole("seller");
-        this.shopName = "";
+    public Seller(String role, String username, String email, String password, String address, String shopName) {
+        super(role, username, email, password, address);
+        this.shopName = shopName;
     }
 
-    public Seller(int id, String username, String email, String password, String address, String shopName) {
-        super(id, username, email, password, "seller", address);
-        this.shopName = shopName;
+    public Seller() {
+        super("seller", "", "", "", "");
+        this.shopName = "";
     }
 
     public String getShopName() {
@@ -40,6 +39,6 @@ public class Seller extends User {
 
     public void changeOrderStatus(Order order, String status) {
         order.setStatus(status);
-        System.out.println("Order " + order.getId() + " status changed to: " + status);
+        System.out.println("Order " + order.getId() + " status changed to: " + status + " by seller: " + getUsername());
     }
 }

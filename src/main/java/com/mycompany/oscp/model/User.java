@@ -1,34 +1,34 @@
 package com.mycompany.oscp.model;
 
 public class User {
-    private int id;
+    protected String role;
     private String username;
     private String email;
     private String password;
-    private String role;
     private String address;
+    private String phone;
 
     public User() {
-        this.id = 0;
+        this.role = "";
         this.username = "";
         this.email = "";
         this.password = "";
-        this.role = "";
         this.address = "";
+        this.phone = "";
     }
 
-    public User(int id, String username, String email, String password, String role, String address) {
-        this.id = id;
+    public User(String role, String username, String email, String password, String address) {
+        this.role = role;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.role = role;
         this.address = address;
+        this.phone = "";
     }
 
     // Getters
-    public int getId() {
-        return id;
+    public String getRole() {
+        return role;
     }
 
     public String getUsername() {
@@ -39,21 +39,21 @@ public class User {
         return email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
     public String getAddress() {
         return address;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
     // Setters
-    public void setId(int id) {
-        this.id = id;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public void setUsername(String username) {
@@ -64,15 +64,24 @@ public class User {
         this.email = email;
     }
 
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    // Actions
+    public void register() {
+        System.out.println(username + " registered successfully.");
+    }
+
+    public void login() {
+        System.out.println(username + " logged in successfully.");
     }
 }
