@@ -10,81 +10,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DormDealz - Your Campus Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fff; min-height: 100vh; color: #1a1a1a; }
-        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
-        .navbar .nav-links { display: flex; gap: 35px; align-items: center; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.9em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .hero { height: 80vh; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1600') center/cover; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; animation: fadeIn 1s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 4em; font-weight: 400; letter-spacing: 8px; margin-bottom: 20px; opacity: 0; animation: slideDown 0.8s ease-out 0.3s forwards; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        .hero p { font-size: 1.1em; letter-spacing: 3px; margin-bottom: 40px; font-weight: 300; opacity: 0; animation: slideDown 0.8s ease-out 0.6s forwards; }
-        .hero-buttons { display: flex; gap: 20px; opacity: 0; animation: slideUp 0.8s ease-out 0.9s forwards; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .btn { display: inline-block; padding: 16px 45px; text-decoration: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-        .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(0,0,0,0.1); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
-        .btn:hover::before { width: 400px; height: 400px; }
-        .btn-primary { background: #fff; color: #1a1a1a; border: 2px solid #fff; }
-        .btn-primary:hover { background: transparent; color: #fff; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255,255,255,0.3); }
-        .btn-secondary { background: transparent; color: #fff; border: 2px solid #fff; }
-        .btn-secondary:hover { background: #fff; color: #1a1a1a; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255,255,255,0.3); }
-        .features-section { padding: 80px 60px; background: #fafafa; }
-        .features-section h2 { text-align: center; font-family: 'Playfair Display', serif; font-size: 2.2em; font-weight: 400; margin-bottom: 50px; letter-spacing: 2px; }
-        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1000px; margin: 0 auto; }
-        .feature { text-align: center; padding: 30px; opacity: 0; animation: fadeInScale 0.6s ease-out forwards; transition: transform 0.3s ease; }
-        .feature:nth-child(1) { animation-delay: 0.2s; }
-        .feature:nth-child(2) { animation-delay: 0.4s; }
-        .feature:nth-child(3) { animation-delay: 0.6s; }
-        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        .feature:hover { transform: translateY(-8px); }
-        .feature-icon { font-size: 2.5em; margin-bottom: 20px; }
-        .feature h3 { font-size: 1em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
-        .feature-text { color: #666; font-size: 0.9em; line-height: 1.6; }
-        .footer { background: #1a1a1a; color: #fff; padding: 60px; text-align: center; }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 25px; }
-        .footer-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
-        .footer-links a { color: #999; text-decoration: none; font-size: 0.85em; letter-spacing: 1px; transition: color 0.3s; }
-        .footer-links a:hover { color: #fff; }
-        .footer p { color: #666; font-size: 0.8em; }
-        @media (max-width: 900px) { .navbar { padding: 15px 30px; } .features { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="css/uitm-theme.css">
+    <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
     <jsp:include page="header.jsp" />
     <section class="hero">
         <h1>DORMDEALZ</h1>
-        <p>Your Campus Marketplace for Students</p>
+        <p>Your Campus Marketplace</p>
         <div class="hero-buttons">
             <a href="<%= (user != null) ? "products" : "login" %>" class="btn btn-primary">
-                <%= (user != null) ? "Browse Items" : "Start Shopping" %>
+                <%= (user != null) ? "Browse" : "Get Started" %>
             </a>
-            <a href="<%= (user != null) ? "orderHistory" : "register" %>" class="btn btn-secondary">
-                <%= (user != null) ? "My Orders" : "Sign Up" %>
-            </a>
+            <% if (user == null) { %>
+            <a href="register" class="btn btn-secondary">Sign Up</a>
+            <% } %>
         </div>
     </section>
     <section class="features-section">
-        <h2>Why Choose DormDealz</h2>
         <div class="features">
             <div class="feature">
                 <div class="feature-icon">✦</div>
                 <h3>Student Community</h3>
-                <p class="feature-text">Buy and sell within your trusted campus network</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">◈</div>
                 <h3>Great Deals</h3>
-                <p class="feature-text">Save money on textbooks, furniture, electronics & more</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">◇</div>
                 <h3>Easy Meetups</h3>
-                <p class="feature-text">Arrange convenient on-campus pickup or delivery</p>
             </div>
         </div>
     </section>

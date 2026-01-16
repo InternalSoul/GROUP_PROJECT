@@ -39,6 +39,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
+    <link rel="stylesheet" href="css/pages.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }

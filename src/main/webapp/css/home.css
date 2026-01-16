@@ -1,0 +1,212 @@
+/* UITM Marketplace - Premium Home Page */
+
+/* Hero Section */
+.hero {
+    height: 90vh;
+    background: linear-gradient(135deg, rgba(133, 53, 140, 0.15) 0%, rgba(107, 42, 112, 0.1) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--primary-purple);
+    animation: fadeIn 1.2s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 5em;
+    font-weight: 300;
+    letter-spacing: 8px;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: slideDown 1s ease-out 0.3s forwards;
+    text-shadow: none;
+    background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero p {
+    font-size: 1em;
+    letter-spacing: 3px;
+    margin-bottom: 56px;
+    font-weight: 400;
+    opacity: 0;
+    animation: slideDown 1s ease-out 0.6s forwards;
+    text-shadow: none;
+    color: var(--text-secondary);
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    opacity: 0;
+    animation: slideUp 1s ease-out 0.9s forwards;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Features Section */
+.features-section {
+    padding: 80px 60px;
+    background: transparent;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.feature {
+    text-align: center;
+    padding: 56px 32px;
+    opacity: 0;
+    animation: fadeInScale 0.8s ease-out forwards;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 8px 32px 0 rgba(133, 53, 140, 0.08);
+}
+
+.feature:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.feature:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.feature:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.feature:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px 0 rgba(133, 53, 140, 0.15);
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.feature-icon {
+    font-size: 3.5em;
+    margin-bottom: 24px;
+    color: var(--primary-purple);
+    opacity: 0.9;
+}
+
+.feature h3 {
+    font-size: 1.125em;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-bottom: 0;
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .features {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+    }
+    
+    .hero h1 {
+        font-size: 2.5em;
+        letter-spacing: 4px;
+    }
+    
+    .hero p {
+        font-size: 1em;
+        letter-spacing: 2px;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .features-section {
+        padding: 60px 30px;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero {
+        height: 70vh;
+    }
+    
+    .hero h1 {
+        font-size: 2em;
+        letter-spacing: 2px;
+    }
+    
+    .features-section h2 {
+        font-size: 1.8em;
+    }
+}

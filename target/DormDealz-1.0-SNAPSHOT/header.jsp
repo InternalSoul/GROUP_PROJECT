@@ -29,21 +29,7 @@
         cartCount = (cart != null) ? cart.size() : 0;
     }
 %>
-<style>
-    .cart-count {
-        background: #1a1a1a;
-        color: #fff;
-        padding: 2px 8px;
-        font-size: 0.75em;
-        margin-left: 5px;
-        border-radius: 999px;
-    }
-    .user-name {
-        color: #888;
-        font-size: 0.85em;
-    }
-</style>
-<div class="top-bar">STUDENT MARKETPLACE - BUY & SELL WITHIN YOUR CAMPUS COMMUNITY</div>
+<div class="top-bar">PLATFORM JUAL BELI PELAJAR UITM - SELAMAT, MUDAH & DIPERCAYAI</div>
 <nav class="navbar">
     <a href="index.jsp" class="logo">DORMDEALZ</a>
     <div class="nav-links">

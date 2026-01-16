@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="java.util.*, com.mycompany.oscp.model.*" %>
 <%
     User user = (User) session.getAttribute("user");
