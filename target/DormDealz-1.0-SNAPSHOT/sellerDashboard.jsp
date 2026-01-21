@@ -35,37 +35,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Dashboard - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        body { font-family: 'Inter', sans-serif; background: #f3e6fa; min-height: 100vh; color: #4b1556; }
+            .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #e5c6f6; background: #85358c; }
+            .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #fff; }
         .navbar .nav-links { display: flex; gap: 30px; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 60px 30px; }
+            .navbar .nav-links a { text-decoration: none; color: #fff; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+            .navbar .nav-links a:hover { opacity: 0.7; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 60px 30px; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px #e5c6f6; }
         h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 10px; }
-        .welcome-text { color: #888; font-size: 1.05em; margin-bottom: 30px; }
+        .welcome-text { color: #85358c; font-size: 1.05em; margin-bottom: 30px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
-        .stat-card { background: #fff; border: 1px solid #eee; padding: 24px; border-radius: 10px; }
-        .stat-label { font-size: 0.85em; letter-spacing: 0.5px; text-transform: uppercase; color: #666; margin-bottom: 6px; }
-        .stat-value { font-size: 2em; font-weight: 700; color: #1a1a1a; }
-        .stat-sub { color: #888; font-size: 0.9em; margin-top: 4px; }
-        .section { margin-top: 32px; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 24px; }
-        .section h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 1px; margin-bottom: 12px; }
-        .section p { color: #666; margin-bottom: 12px; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 12px; border-bottom: 1px solid #f0f0f0; text-align: left; }
-        .table th { text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85em; color: #666; }
-        .table img { width: 50px; height: 50px; object-fit: cover; border: 1px solid #eee; border-radius: 6px; }
+        .stat-card { background: #e5c6f6; border: 1px solid #85358c; padding: 24px; border-radius: 10px; }
+        .stat-label { font-size: 0.85em; letter-spacing: 0.5px; text-transform: uppercase; color: #85358c; margin-bottom: 6px; }
+        .stat-value { font-size: 2em; font-weight: 700; color: #4b1556; }
+        .stat-sub { color: #85358c; font-size: 0.9em; margin-top: 4px; }
+        .section { margin-top: 32px; background: #f3e6fa; border: 1px solid #85358c; border-radius: 10px; padding: 24px; }
+        .section h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 1px; margin-bottom: 12px; color: #85358c; }
+        .section p { color: #85358c; margin-bottom: 12px; }
+        .table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; }
+        .table th, .table td { padding: 12px; border-bottom: 1px solid #e5c6f6; text-align: left; }
+        .table th { text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85em; color: #85358c; background: #f3e6fa; }
+        .table img { width: 50px; height: 50px; object-fit: cover; border: 1px solid #e5c6f6; border-radius: 6px; }
         .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-        .btn { padding: 12px 18px; border: 1px solid #1a1a1a; background: #1a1a1a; color: #fff; text-decoration: none; letter-spacing: 0.8px; text-transform: uppercase; font-weight: 600; }
-        .btn.secondary { background: transparent; color: #1a1a1a; }
-        .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
-        .footer p { color: #666; font-size: 0.8em; }
-        .success-message { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; padding: 12px 16px; border-radius: 8px; margin-top: 20px; }
-        .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-top: 20px; }
+        .btn { padding: 12px 18px; border: 1px solid #85358c; background: #85358c; color: #fff; text-decoration: none; letter-spacing: 0.8px; text-transform: uppercase; font-weight: 600; transition: background 0.3s, border 0.3s; }
+        .btn.secondary { background: transparent; color: #85358c; border: 1px solid #85358c; }
+        .footer { background: #85358c; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; color: #fff; }
+        .footer p { color: #e5c6f6; font-size: 0.8em; }
+        .success-message { background: #e5c6f6; border: 1px solid #85358c; color: #4b1556; padding: 12px 16px; border-radius: 8px; margin-top: 20px; }
+        .error-message { background: #f3e6fa; border: 1px solid #85358c; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-top: 20px; }
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }

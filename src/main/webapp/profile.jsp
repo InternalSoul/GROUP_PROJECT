@@ -19,20 +19,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
-        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
-        .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .container { max-width: 800px; margin: 0 auto; padding: 60px 30px; }
-        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-secondary); min-height: 100vh; color: var(--text-primary); }
+        .container { max-width: 800px; margin: 0 auto; padding: 60px 30px; background: var(--bg-primary); border-radius: 12px; box-shadow: var(--shadow-md); }
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; color: var(--primary-purple); }
         .success-message { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; }
         .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; }
-        .profile-card { background: #fff; border: 1px solid #eee; padding: 40px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); animation: slideInUp 0.6s ease-out; }
+        .profile-card { background: var(--bg-primary); border: 1px solid var(--border-light); padding: 40px; border-radius: 10px; box-shadow: var(--shadow-sm); animation: slideInUp 0.6s ease-out; }
         @keyframes slideInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         .section { margin-bottom: 40px; animation: fadeIn 0.8s ease-out backwards; }
         .section:nth-child(1) { animation-delay: 0.2s; }
@@ -40,26 +35,26 @@
         .section:nth-child(3) { animation-delay: 0.6s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         .section:last-child { margin-bottom: 0; }
-        .section h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; font-weight: 400; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .section h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; font-weight: 400; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light); color: var(--primary-purple); }
         .form-row { display: grid; gap: 20px; margin-bottom: 20px; }
         .form-row.two-col { grid-template-columns: 1fr 1fr; }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.85em; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; color: #555; }
-        .form-group input, .form-group textarea { padding: 14px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; border-radius: 6px; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,26,26,0.1); }
+        .form-group label { font-size: 0.85em; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; color: var(--primary-purple); }
+        .form-group input, .form-group textarea { padding: 14px; border: 1px solid var(--border-medium); font-size: 1em; font-family: 'Inter', sans-serif; border-radius: 6px; transition: border-color 0.2s; background: var(--bg-secondary); }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-purple); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(133,53,140,0.1); }
         .form-group input:read-only { background: #f5f5f5; color: #888; cursor: not-allowed; }
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-group small { color: #888; font-size: 0.85em; margin-top: 5px; }
         .button-group { display: flex; gap: 15px; margin-top: 30px; }
-        .btn { padding: 14px 35px; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: none; }
-        .btn-primary { background: #1a1a1a; color: #fff; }
-        .btn-primary:hover { background: #333; }
-        .btn-secondary { background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn { padding: 14px 35px; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: none; }
+        .btn-primary { background: var(--primary-purple); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: transparent; color: var(--primary-purple); border: 1px solid var(--primary-purple); }
+        .btn-secondary:hover { background: var(--primary-light); color: #fff; }
         .info-badge { display: inline-block; padding: 6px 12px; background: #e0e7ff; color: #3730a3; border-radius: 999px; font-size: 0.8em; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 20px; }
-        .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
-        .footer p { color: #666; font-size: 0.8em; }
+        .footer { background: rgba(245, 245, 245, 0.5); color: var(--text-secondary); padding: 40px; text-align: center; margin-top: 80px; border-top: 1px solid rgba(255,255,255,0.3); }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; color: var(--primary-purple); }
+        .footer p { color: var(--text-light); font-size: 0.8em; }
         @media (max-width: 768px) {
             .navbar { padding: 15px 30px; flex-wrap: wrap; }
             .container { padding: 40px 20px; }

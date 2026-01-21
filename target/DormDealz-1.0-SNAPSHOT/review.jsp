@@ -74,34 +74,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Write Review - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
-        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
-        .navbar .nav-links { display: flex; gap: 30px; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .container { max-width: 700px; margin: 0 auto; padding: 60px 30px; }
-        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; text-align: center; }
-        .review-box { background: #fff; border: 1px solid #eee; padding: 50px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-secondary); min-height: 100vh; color: var(--text-primary); }
+        .container { max-width: 700px; margin: 0 auto; padding: 60px 30px; background: var(--bg-primary); border-radius: 12px; box-shadow: var(--shadow-md); }
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; text-align: center; color: var(--primary-purple); }
+        .review-box { background: var(--bg-primary); border: 1px solid var(--border-light); padding: 50px; border-radius: 10px; box-shadow: var(--shadow-sm); }
         .form-group { margin-bottom: 30px; }
-        .form-group label { display: block; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; color: #1a1a1a; }
-        .form-group input[type="text"] { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; }
-        .form-group textarea { width: 100%; padding: 16px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; min-height: 150px; resize: vertical; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; }
+        .form-group label { display: block; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; color: var(--primary-purple); }
+        .form-group input[type="text"], .form-group textarea { width: 100%; padding: 16px; border: 1px solid var(--border-medium); font-size: 1em; font-family: 'Inter', sans-serif; border-radius: 6px; background: var(--bg-secondary); }
+        .form-group textarea { min-height: 150px; resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-purple); box-shadow: 0 0 0 2px #e8dce9; }
         .rating-input { display: flex; gap: 6px; font-size: 1.8em; cursor: pointer; }
         .rating-input input[type="radio"] { display: none; }
         .rating-input label { cursor: pointer; color: #ddd; transition: color 0.15s ease-in-out; }
-        .rating-input label.active { color: #facc15; }
-        .submit-btn { width: 100%; padding: 18px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
-        .submit-btn:hover { background: #333; }
-        .back-link { display: block; text-align: center; margin-top: 25px; color: #888; text-decoration: none; font-size: 0.9em; }
-        .back-link:hover { color: #1a1a1a; }
-        .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 60px; }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
-        .footer p { color: #666; font-size: 0.8em; }
+        .rating-input label.active { color: var(--accent-gold); }
+        .submit-btn { width: 100%; padding: 18px; background: var(--primary-purple); color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 8px; transition: background 0.3s; }
+        .submit-btn:hover { background: var(--primary-dark); }
+        .back-link { display: block; text-align: center; margin-top: 25px; color: var(--primary-purple); text-decoration: none; font-size: 0.9em; font-weight: 500; }
+        .back-link:hover { color: var(--primary-dark); }
+        .footer { background: rgba(245, 245, 245, 0.5); color: var(--text-secondary); padding: 40px; text-align: center; margin-top: 60px; border-top: 1px solid rgba(255,255,255,0.3); }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; color: var(--primary-purple); }
+        .footer p { color: var(--text-light); font-size: 0.8em; }
     </style>
 </head>
 <body>

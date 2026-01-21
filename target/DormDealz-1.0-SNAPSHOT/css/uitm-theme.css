@@ -110,7 +110,7 @@ body {
     color: var(--primary-purple);
     transform: translateY(-1px);
 }
-}
+
 
 .navbar .nav-links a:hover::after {
     width: 100%;

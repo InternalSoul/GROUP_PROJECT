@@ -23,23 +23,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order History - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
-        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        body { font-family: 'Inter', sans-serif; background: #f5f0f6; min-height: 100vh; color: #85358c; }
+        .top-bar { background: #85358c; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #e5e5e5; background: #fff; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #85358c; }
         .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .cart-count { background: #1a1a1a; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
-        .user-name { color: #888; font-size: 0.85em; }
+        .navbar .nav-links a { text-decoration: none; color: #85358c; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.7; }
+        .cart-count { background: #85358c; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
+        .user-name { color: #9d4aa3; font-size: 0.85em; }
         .container { max-width: 1100px; margin: 0 auto; padding: 50px 30px 70px; }
         h1 { font-family: 'Playfair Display', serif; font-size: 2.2em; font-weight: 400; letter-spacing: 2px; margin-bottom: 30px; }
         .section-title { font-size: 1.1em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin: 30px 0 15px; }
-        .orders-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
-        .orders-table th { background: #f5f5f5; padding: 14px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #eee; }
-        .orders-table td { padding: 14px; border-bottom: 1px solid #eee; font-size: 0.9em; vertical-align: top; }
+        .orders-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #9d4aa3; border-radius: 8px; overflow: hidden; }
+        .orders-table th { background: #f5f0f6; padding: 14px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #9d4aa3; color: #85358c; }
+        .orders-table td { padding: 14px; border-bottom: 1px solid #e5e5e5; font-size: 0.9em; vertical-align: top; color: #85358c; }
         .orders-table tbody tr { opacity: 0; animation: fadeInRow 0.5s ease-out forwards; transition: background 0.2s ease; }
         .orders-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
         .orders-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
@@ -47,25 +48,26 @@
         .orders-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
         .orders-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
         @keyframes fadeInRow { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        .orders-table tbody tr:hover { background: #fafafa; }
+        .orders-table tbody tr:hover { background: #f5e6fa; }
         .orders-table tr:last-child td { border-bottom: none; }
-        .order-thumb { width: 60px; height: 60px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: 1.4em; color: #ddd; border-radius: 4px; }
+        .order-thumb { width: 60px; height: 60px; background: #f5e6fa; display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: 1.4em; color: #b4838d; border-radius: 4px; }
         .order-thumb img { max-width: 100%; max-height: 100%; object-fit: cover; }
-        .order-items { font-size: 0.85em; color: #555; line-height: 1.5; }
+        .order-items { font-size: 0.85em; color: #b4838d; line-height: 1.5; }
         .order-items div { margin-bottom: 4px; }
         .status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.75em; letter-spacing: 0.5px; text-transform: uppercase; }
-        .status-pending { background: #fff7ed; color: #c05621; border: 1px solid #fed7aa; }
-        .status-completed { background: #ecfdf3; color: #166534; border: 1px solid #bbf7d0; }
+        .status-delivered { background: #e6f7e6; color: #166534; border: 1px solid #34c759; }
+        .status-pending { background: #fffbe6; color: #b4838d; border: 1px solid #d4af37; }
+        .status-shipped { background: #e6f0fa; color: #1a73e8; border: 1px solid #1a73e8; }
         .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-        .empty { padding: 30px; text-align: center; background: #fff; border: 1px solid #eee; color: #888; font-size: 0.95em; }
-        .track-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #1a1a1a; background: #fff; color: #1a1a1a; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .track-btn:hover { background: #1a1a1a; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .empty { padding: 30px; text-align: center; background: #fff; border: 1px solid #9d4aa3; color: #b4838d; font-size: 0.95em; }
+        .track-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #85358c; background: #fff; color: #85358c; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .track-btn:hover { background: #85358c; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(133,53,140,0.15); }
         .review-btn { display: inline-block; padding: 8px 14px; font-size: 0.8em; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #166534; background: #fff; color: #166534; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-top: 6px; }
         .review-btn:hover { background: #166534; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2); }
         .action-buttons { display: flex; flex-direction: column; gap: 6px; }
-        .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 60px; }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
-        .footer p { color: #666; font-size: 0.8em; }
+        .footer { background: #85358c; color: #fff; padding: 40px; text-align: center; margin-top: 60px; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; color: #fff; }
+        .footer p { color: #d4af37; font-size: 0.8em; }
     </style>
 </head>
 <body>
@@ -127,7 +129,13 @@
                             <td><%= o.getDate() %></td>
                             <td>
                                 <% String st = o.getStatus(); %>
-                                <span class="status-badge <%= "Completed".equalsIgnoreCase(st) ? "status-completed" : ("Cancelled".equalsIgnoreCase(st) ? "status-cancelled" : "status-pending") %>"><%= st %></span>
+                                <span class="status-badge
+                                    <%= "Delivered".equalsIgnoreCase(st) ? "status-delivered" :
+                                        ("Pending".equalsIgnoreCase(st) ? "status-pending" :
+                                        ("Shipped".equalsIgnoreCase(st) ? "status-shipped" :
+                                        ("Cancelled".equalsIgnoreCase(st) ? "status-cancelled" : ""))) %>">
+                                    <%= st %>
+                                </span>
                             </td>
                             <td>
                                 <div class="order-items">

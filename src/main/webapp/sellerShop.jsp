@@ -44,19 +44,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Listings - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        body { font-family: 'Inter', sans-serif; background: #f5f0f6; min-height: 100vh; color: #85358c; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #e5e5e5; background: #fff; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #85358c; }
         .navbar .nav-links { display: flex; gap: 30px; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
+        .navbar .nav-links a { text-decoration: none; color: #85358c; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.7; }
         .container { max-width: 1200px; margin: 0 auto; padding: 60px 30px; }
         h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; }
-        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
-        .add-btn { padding: 14px 35px; background: #1a1a1a; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
-        .add-btn:hover { background: #333; }
+        .add-btn { padding: 14px 35px; background: #85358c; color: #fff; border: none; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; border-radius: 6px; }
+        .add-btn:hover { background: #9d4aa3; }
         .products-section { margin-top: 0; }
         .products-table { background: #fff; border: 1px solid #eee; width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
         .products-table th { background: #f5f5f5; padding: 18px; text-align: left; font-size: 0.8em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #eee; }

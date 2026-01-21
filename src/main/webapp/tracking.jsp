@@ -7,50 +7,45 @@
 <head>
     <meta charset="UTF-8">
     <title>Order Tracking - DormDealz</title>
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            color: var(--text-primary);
         }
-        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
-        .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--bg-primary);
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
         }
         h1 {
-            color: #333;
-            border-bottom: 2px solid #007bff;
+            color: var(--primary-purple);
+            border-bottom: 2px solid var(--primary-purple);
             padding-bottom: 10px;
         }
         .order-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            background: #fafafa;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
         }
         .order-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-medium);
         }
         .order-id {
             font-weight: bold;
             font-size: 1.2em;
-            color: #007bff;
+            color: var(--primary-purple);
         }
         .status {
             padding: 5px 15px;
@@ -58,55 +53,59 @@
             font-weight: bold;
             font-size: 0.9em;
         }
-        .status.pending { background: #ffc107; color: #000; }
-        .status.processing { background: #17a2b8; color: #fff; }
-        .status.shipped { background: #28a745; color: #fff; }
-        .status.delivered { background: #6c757d; color: #fff; }
-        .status.cancelled { background: #dc3545; color: #fff; }
+        .status.pending { background: #ffe9a7; color: #a67c00; }
+        .status.processing { background: #e0e7ff; color: #5b21b6; }
+        .status.shipped { background: #e9d5ff; color: #7c3aed; }
+        .status.delivered { background: #d1fae5; color: #065f46; }
+        .status.cancelled { background: #fee2e2; color: #b91c1c; }
         .tracking-info {
-            background: white;
+            background: var(--bg-primary);
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 8px;
             margin-top: 15px;
+            box-shadow: var(--shadow-sm);
         }
         .tracking-item {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-light);
         }
         .tracking-item:last-child {
             border-bottom: none;
         }
         .label {
             font-weight: bold;
-            color: #666;
+            color: var(--text-secondary);
         }
         .value {
-            color: #333;
+            color: var(--text-primary);
         }
         .no-orders {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: var(--text-secondary);
         }
         .back-link {
             display: inline-block;
             margin-top: 20px;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
+            padding: 12px 28px;
+            background: var(--primary-purple);
+            color: #fff;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: background 0.3s;
         }
         .back-link:hover {
-            background: #0056b3;
+            background: var(--primary-dark);
         }
         .error {
-            background: #f8d7da;
-            color: #721c24;
+            background: #fee2e2;
+            color: #b91c1c;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 8px;
             margin-bottom: 20px;
         }
     </style>

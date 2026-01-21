@@ -77,17 +77,18 @@
     <title><%= product.getName() %> - DormDealz</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/uitm-theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Manrope', sans-serif; background: linear-gradient(135deg, #f7f7f2, #f0f4ff); color: #0f172a; }
-        .top-bar { background: #1a1a1a; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        body { font-family: 'Inter', sans-serif; background: #f5f0f6; color: #85358c; }
+        .top-bar { background: #85358c; color: #fff; text-align: center; padding: 10px; font-size: 0.85em; letter-spacing: 1px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #e5e5e5; background: #fff; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #85358c; }
         .navbar .nav-links { display: flex; gap: 30px; align-items: center; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .cart-count { background: #1a1a1a; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
-        .user-name { color: #888; font-size: 0.85em; }
+        .navbar .nav-links a { text-decoration: none; color: #85358c; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.7; }
+        .cart-count { background: #85358c; color: #fff; padding: 2px 8px; font-size: 0.75em; margin-left: 5px; }
+        .user-name { color: #9d4aa3; font-size: 0.85em; }
         .page { max-width: 1200px; margin: 40px auto 60px; padding: 0 40px; }
         .breadcrumbs { font-size: 0.85em; color: #475569; margin-bottom: 20px; }
         .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: start; }
@@ -101,40 +102,40 @@
         .hero-placeholder { font-size: 4em; color: #cbd5e1; }
         .detail-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05); animation: fadeInRight 0.8s ease-out; }
         @keyframes fadeInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-        .title { font-family: 'Cormorant Garamond', serif; font-size: 2.4em; letter-spacing: 1px; margin-bottom: 8px; }
-        .meta { color: #475569; font-size: 0.95em; margin-bottom: 12px; }
+        .title, h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 40px; color: #85358c; text-align: center; }
+        .meta { color: #b4838d; font-size: 0.95em; margin-bottom: 12px; }
         .seller-row { display: inline-flex; align-items: center; gap: 10px; }
         .seller-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e2e8f0; object-fit: cover; }
-        .seller-link { display: inline-flex; align-items: center; gap: 10px; color: #0f172a; text-decoration: none; font-weight: 700; letter-spacing: 0.5px; }
-        .seller-link:hover { text-decoration: underline; }
-        .price { font-size: 1.8em; font-weight: 700; color: #0f172a; margin: 14px 0 6px; }
+        .seller-link { display: inline-flex; align-items: center; gap: 10px; color: #85358c; text-decoration: none; font-weight: 700; letter-spacing: 0.5px; }
+        .seller-link:hover { text-decoration: underline; color: #6b2a70; }
+        .price { font-size: 1.8em; font-weight: 700; color: #85358c; margin: 14px 0 6px; }
         .stock-row { display:flex; align-items:center; gap:10px; margin-bottom: 12px; font-size:0.9em; color:#475569; }
         .stock-pill { padding:4px 10px; border-radius:999px; font-size:0.75em; letter-spacing:0.5px; text-transform:uppercase; }
         .stock-pill.in { background:#ecfdf3; color:#166534; border:1px solid #bbf7d0; }
         .stock-pill.out { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
         .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
         .badge { padding: 6px 10px; border-radius: 999px; font-size: 0.75em; letter-spacing: 0.5px; text-transform: uppercase; }
-        .badge-dark { background: #0f172a; color: #fff; }
-        .badge-outline { border: 1px solid #0f172a; color: #0f172a; background: #fff; }
+        .badge-dark { background: #85358c; color: #fff; }
+        .badge-outline { border: 1px solid #85358c; color: #85358c; background: #fff; }
         .rating { display: flex; align-items: center; gap: 8px; color: #f59e0b; font-weight: 700; margin-bottom: 10px; }
         .rating span { color: #0f172a; font-weight: 600; }
-        .desc { color: #1e293b; line-height: 1.6; margin: 12px 0 20px; }
+        .desc { color: #b4838d; line-height: 1.6; margin: 12px 0 20px; }
         .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
         .btn { border: none; cursor: pointer; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-radius: 10px; padding: 14px 18px; transition: transform 0.2s, box-shadow 0.2s; }
         .btn-primary { background: #0f172a; color: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25); }
         .btn-ghost { background: transparent; border: 1px solid #0f172a; color: #0f172a; }
         .specs { margin-top: 28px; }
-        .spec-title { font-size: 0.95em; font-weight: 700; letter-spacing: 1px; color: #475569; margin-bottom: 10px; text-transform: uppercase; }
+        .spec-title { font-size: 0.95em; font-weight: 700; letter-spacing: 1px; color: #85358c; margin-bottom: 10px; text-transform: uppercase; }
         .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-        .spec-chip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-size: 0.95em; color: #0f172a; }
-        .section { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); margin-top: 30px; }
-        .section h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.8em; margin-bottom: 10px; }
-        .section p { color: #1e293b; line-height: 1.6; }
+        .spec-chip { background: #f5e6fa; border: 1px solid #9d4aa3; border-radius: 12px; padding: 12px; font-size: 0.95em; color: #85358c; }
+        .section { background: #fff; border: 1px solid #9d4aa3; border-radius: 18px; padding: 24px; box-shadow: 0 10px 30px rgba(133,53,140,0.04); margin-top: 30px; }
+        .section h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; font-weight: 400; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #9d4aa3; color: #85358c; }
+        .section p { color: #b4838d; line-height: 1.6; }
         .reviews { display: grid; gap: 14px; margin-top: 16px; }
-        .review { border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; background: #f8fafc; }
-        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: #475569; font-size: 0.9em; }
-        .review-rating { color: #f59e0b; font-weight: 700; }
+        .review { border: 1px solid #9d4aa3; border-radius: 14px; padding: 14px; background: #f5e6fa; }
+        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: #b4838d; font-size: 0.9em; }
+        .review-rating { color: #d4af37; font-weight: 700; }
         .rating-input-inline { display: flex; gap: 6px; font-size: 1.6em; cursor: pointer; user-select: none; }
         .rating-input-inline .star {
             position: relative;
@@ -150,8 +151,8 @@
             overflow: hidden;
             color: #facc15; /* yellow fill */
         }
-        .review-comment { color: #0f172a; line-height: 1.5; }
-        .empty { padding: 18px; border: 1px dashed #cbd5e1; border-radius: 10px; color: #475569; background: #f8fafc; }
+        .review-comment { color: #85358c; line-height: 1.5; }
+        .empty { padding: 18px; border: 1px dashed #9d4aa3; border-radius: 10px; color: #b4838d; background: #f5e6fa; }
         .variant-pill { padding: 8px 12px; border-radius: 999px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.9em; cursor: pointer; }
         .variant-pill-selected { border-color: #0f172a; background: #0f172a; color: #fff; }
         .variant-pill[disabled] { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; }

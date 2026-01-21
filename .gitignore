@@ -13,3 +13,4 @@ WEB-INF/classes/
 
 # Ignore database connectors if needed (or you can include them)
 WEB-INF/lib/mysql-connector-j-*.jar
+/target/

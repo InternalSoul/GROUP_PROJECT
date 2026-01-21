@@ -21,39 +21,39 @@
     <link rel="stylesheet" href="css/pages.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; min-height: 100vh; color: #1a1a1a; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #eee; background: #fff; }
-        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #1a1a1a; }
+        body { font-family: 'Inter', sans-serif; background: #f3e6fa; min-height: 100vh; color: #4b1556; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; border-bottom: 1px solid #e5c6f6; background: #85358c; }
+        .navbar .logo { font-family: 'Playfair Display', serif; font-size: 1.8em; font-weight: 700; letter-spacing: 3px; text-decoration: none; color: #fff; }
         .navbar .nav-links { display: flex; gap: 30px; }
-        .navbar .nav-links a { text-decoration: none; color: #1a1a1a; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
-        .navbar .nav-links a:hover { opacity: 0.6; }
-        .container { max-width: 900px; margin: 0 auto; padding: 60px 30px; }
+        .navbar .nav-links a { text-decoration: none; color: #fff; font-size: 0.85em; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.3s; }
+        .navbar .nav-links a:hover { opacity: 0.7; }
+        .container { max-width: 900px; margin: 0 auto; padding: 60px 30px; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px #e5c6f6; }
         h1 { font-family: 'Playfair Display', serif; font-size: 2.5em; font-weight: 400; letter-spacing: 2px; margin-bottom: 15px; }
-        .subtitle { color: #888; font-size: 1.05em; margin-bottom: 40px; }
-        .success-message { background: #f0fff4; border: 1px solid #c6f6d5; color: #22543d; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
-        .error-message { background: #fff5f5; border: 1px solid #ffcccc; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
-        .form-card { background: #fff; border: 1px solid #eee; padding: 40px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .subtitle { color: #85358c; font-size: 1.05em; margin-bottom: 40px; }
+        .success-message { background: #e5c6f6; border: 1px solid #85358c; color: #4b1556; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+        .error-message { background: #f3e6fa; border: 1px solid #85358c; color: #b00020; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+        .form-card { background: #f3e6fa; border: 1px solid #85358c; padding: 40px; border-radius: 10px; box-shadow: 0 2px 8px #e5c6f6; }
         .form-section { margin-bottom: 30px; }
-        .form-section h3 { font-family: 'Playfair Display', serif; font-size: 1.3em; font-weight: 400; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .form-section h3 { font-family: 'Playfair Display', serif; font-size: 1.3em; font-weight: 400; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #e5c6f6; color: #85358c; }
         .form-row { display: grid; gap: 20px; margin-bottom: 20px; }
         .form-row.two-col { grid-template-columns: 1fr 1fr; }
         .form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
         .form-row.four-col { grid-template-columns: repeat(4, 1fr); }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.85em; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; color: #555; }
-        .form-group input, .form-group textarea, .form-group select { padding: 14px; border: 1px solid #ddd; font-size: 1em; font-family: 'Inter', sans-serif; border-radius: 6px; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #1a1a1a; }
+        .form-group label { font-size: 0.85em; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; color: #85358c; }
+        .form-group input, .form-group textarea, .form-group select { padding: 14px; border: 1px solid #e5c6f6; font-size: 1em; font-family: 'Inter', sans-serif; border-radius: 6px; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #85358c; }
         .form-group textarea { resize: vertical; min-height: 100px; }
-        .form-group small { color: #888; font-size: 0.85em; margin-top: 5px; }
+        .form-group small { color: #85358c; font-size: 0.85em; margin-top: 5px; }
         .button-group { display: flex; gap: 15px; margin-top: 30px; }
         .btn { padding: 14px 35px; font-size: 0.85em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: none; }
-        .btn-primary { background: #1a1a1a; color: #fff; }
-        .btn-primary:hover { background: #333; }
-        .btn-secondary { background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; }
-        .btn-secondary:hover { background: #f5f5f5; }
-        .footer { background: #1a1a1a; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; }
-        .footer p { color: #666; font-size: 0.8em; }
+        .btn-primary { background: #85358c; color: #fff; }
+        .btn-primary:hover { background: #4b1556; }
+        .btn-secondary { background: transparent; color: #85358c; border: 1px solid #85358c; }
+        .btn-secondary:hover { background: #e5c6f6; }
+        .footer { background: #85358c; color: #fff; padding: 40px; text-align: center; margin-top: 80px; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5em; letter-spacing: 3px; margin-bottom: 15px; color: #fff; }
+        .footer p { color: #e5c6f6; font-size: 0.8em; }
         @media (max-width: 768px) {
             .navbar { padding: 15px 30px; flex-wrap: wrap; }
             .container { padding: 40px 20px; }

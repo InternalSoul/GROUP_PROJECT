@@ -31,7 +31,7 @@
 %>
 <div class="top-bar">PLATFORM JUAL BELI PELAJAR UITM - SELAMAT, MUDAH & DIPERCAYAI</div>
 <nav class="navbar">
-    <a href="index.jsp" class="logo">DORMDEALZ</a>
+    <a href="index.jsp" class="logo" style="color:#1a1a1a;">DORMDEALZ</a>
     <div class="nav-links">
         <a href="products">Browse</a>
         <a href="cart">Cart <span class="cart-count"><%= cartCount %></span></a>
